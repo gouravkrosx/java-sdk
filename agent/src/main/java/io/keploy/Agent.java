@@ -1,8 +1,5 @@
 package io.keploy;
 
-
-
-//import com.sun.org.slf4j.internal.LoggerFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
