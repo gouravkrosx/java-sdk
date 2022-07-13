@@ -5,7 +5,10 @@ import io.keploy.grpc.GrpcClient;
 import io.keploy.grpc.stubs.Service;
 import io.keploy.regression.KeployInstance;
 import io.keploy.regression.context.Context;
+import io.keploy.regression.keploy.AppConfig;
+import io.keploy.regression.keploy.Config;
 import io.keploy.regression.keploy.Keploy;
+import io.keploy.regression.keploy.ServerConfig;
 import io.keploy.regression.mode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,6 +34,38 @@ public class middleware implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
+        System.out.println("INIT METHOD OF FILTER");
+        KeployInstance ki = KeployInstance.getInstance();
+        Keploy kp = new Keploy();
+        Config cfg = new Config();
+        AppConfig appConfig = new AppConfig();
+        appConfig.setName("TEST-APP");
+        appConfig.setPort("8090");
+        ServerConfig serverConfig = new ServerConfig();
+        serverConfig.setURL("http://localhost:8081/api");
+        cfg.setApp(appConfig);
+        cfg.setServer(serverConfig);
+        kp.setCfg(cfg);
+        ki.setKeploy(kp);
+        System.out.println("Inside Keploy middleware: incoming request !!");
+        GrpcClient grpcClient = new GrpcClient();
+        String KEPLOY_MODE  = "test";
+
+        Map<String, String> env = System.getenv();
+        for (String envName : env.keySet()) {
+            System.out.format("This will list all env variables %s=%s%n", envName, env.get(envName));
+        }
+
+        if (kp != null && KEPLOY_MODE != null && KEPLOY_MODE.equals(new mode().getMode().MODE_TEST.getTypeName())) {
+            try {
+                System.out.println("CAlll TEsT mode");
+                grpcClient.Test();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            System.out.println("TEsT mode");
+            return;
+        }
 
     }
 
@@ -47,6 +82,7 @@ public class middleware implements Filter {
             return;
         }
 
+        System.out.println("Yha nhi aya !!");
 
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
