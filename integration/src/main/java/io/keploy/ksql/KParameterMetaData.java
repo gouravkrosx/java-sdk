@@ -1,9 +1,9 @@
-package com.example.ksql;
+package io.keploy.ksql;
 
 import java.sql.ParameterMetaData;
 import java.sql.SQLException;
 
-public class KParameterMetaData implements java.sql.ParameterMetaData {
+public class KParameterMetaData implements ParameterMetaData {
     ParameterMetaData wrappedParameterMetaData;
 
     public KParameterMetaData(ParameterMetaData parameterMetaData) {

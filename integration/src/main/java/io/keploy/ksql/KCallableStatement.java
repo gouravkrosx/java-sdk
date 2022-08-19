@@ -1,4 +1,4 @@
-package com.example.ksql;
+package io.keploy.ksql;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -8,7 +8,7 @@ import java.sql.*;
 import java.util.Calendar;
 import java.util.Map;
 
-public class KCallableStatement implements java.sql.CallableStatement {
+public class KCallableStatement implements CallableStatement {
 
     CallableStatement wrappedCallableStatement;
 

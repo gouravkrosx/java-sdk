@@ -1,9 +1,9 @@
-package com.example.ksql;
+package io.keploy.ksql;
 
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
-public class KResultSetMetaData implements java.sql.ResultSetMetaData {
+public class KResultSetMetaData implements ResultSetMetaData {
     ResultSetMetaData wrappedResultSetMetaData;
 
     public KResultSetMetaData(ResultSetMetaData getMetaData) {

@@ -1,4 +1,4 @@
-package com.example.ksql;
+package io.keploy.ksql;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -7,7 +7,7 @@ import java.net.URL;
 import java.sql.*;
 import java.util.Calendar;
 
-public class KPreparedStatement implements java.sql.PreparedStatement {
+public class KPreparedStatement implements PreparedStatement {
  PreparedStatement wrappedPreparedStatement;
 
  public KPreparedStatement(PreparedStatement pst) {

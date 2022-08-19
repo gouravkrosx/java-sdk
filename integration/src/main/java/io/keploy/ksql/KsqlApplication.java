@@ -1,4 +1,4 @@
-package com.example.ksql;
+package io.keploy.ksql;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

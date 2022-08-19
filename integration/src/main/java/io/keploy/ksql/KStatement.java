@@ -1,8 +1,8 @@
-package com.example.ksql;
+package io.keploy.ksql;
 
 import java.sql.*;
 
-public class KStatement implements java.sql.Statement {
+public class KStatement implements Statement {
     public Statement wrappedStatement;
 
     public KStatement(Statement st) {

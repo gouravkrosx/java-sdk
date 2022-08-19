@@ -1,4 +1,4 @@
-package com.example.ksql;
+package io.keploy.ksql;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -8,7 +8,7 @@ import java.sql.*;
 import java.util.Calendar;
 import java.util.Map;
 
-public class KResultSet implements java.sql.ResultSet {
+public class KResultSet implements ResultSet {
  ResultSet wrappedResultSet;
 
  public KResultSet(ResultSet rs) {
@@ -17,8 +17,9 @@ public class KResultSet implements java.sql.ResultSet {
 
  @Override
  public boolean next() throws SQLException {
-  System.out.println("Mocked Result Set !!");
+
   boolean r = wrappedResultSet.next();
+  System.out.println("Mocked Result Set !! " + r + " : ");
   return r;
  }
 

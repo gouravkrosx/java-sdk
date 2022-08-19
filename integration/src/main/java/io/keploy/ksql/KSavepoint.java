@@ -1,9 +1,9 @@
-package com.example.ksql;
+package io.keploy.ksql;
 
 import java.sql.SQLException;
 import java.sql.Savepoint;
 
-public class KSavepoint implements java.sql.Savepoint {
+public class KSavepoint implements Savepoint {
 
     Savepoint wrappedSavepoint;
 

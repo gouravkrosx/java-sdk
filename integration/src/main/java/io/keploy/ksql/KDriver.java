@@ -1,11 +1,10 @@
-package com.example.ksql;
+package io.keploy.ksql;
 
 //import com.mysql.cj.jdbc.Driver;
+
 import org.postgresql.Driver;
-import java.sql.Connection;
-import java.sql.DriverPropertyInfo;
-import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
+
+import java.sql.*;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -28,6 +27,7 @@ public class KDriver implements java.sql.Driver {
 
     public KDriver(){
 //        super();
+        wrappedDriver = new Driver();
         System.out.println("hello inside no-arg constructor");
     }
 
@@ -42,7 +42,7 @@ public class KDriver implements java.sql.Driver {
     @Override
     public Connection connect(String url, Properties info) throws SQLException {
         System.out.println("HI THERE Mocked!");
-        wrappedDriver = new Driver();
+
         _connection = wrappedDriver.connect(url, info);
         Connection kobj = new KConnection(_connection);
         return kobj;

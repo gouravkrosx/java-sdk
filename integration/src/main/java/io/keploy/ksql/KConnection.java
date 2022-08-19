@@ -1,4 +1,4 @@
-package com.example.ksql;
+package io.keploy.ksql;
 
 
 //import org.postgresql.jdbc.PgConnection;
@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
-public class KConnection implements java.sql.Connection {
+public class KConnection implements Connection {
 
     private final Connection wrappedCon;
 
