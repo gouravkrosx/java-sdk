@@ -1,98 +1,62 @@
 package io.keploy.ksql;
 
 
-import com.thoughtworks.xstream.XStream;
+import com.google.protobuf.InvalidProtocolBufferException;
+import io.keploy.regression.context.Context;
+import io.keploy.regression.context.Kcontext;
+import io.keploy.regression.mode;
+import io.keploy.utils.ProcessD;
+import io.keploy.utils.ProcessDep;
+import io.keploy.utils.depsobj;
 
-import com.thoughtworks.xstream.io.HierarchicalStreamDriver;
-import com.thoughtworks.xstream.io.copy.HierarchicalStreamCopier;
-import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
-import com.thoughtworks.xstream.security.AnyTypePermission;
-//import jdk.internal.org.xml.sax.InputSource;
-
-import java.io.*;
+import java.io.InputStream;
+import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.sql.*;
-
-import java.util.Arrays;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
-public class KPreparedStatement implements PreparedStatement, Cloneable {
+import static io.keploy.regression.mode.ModeType.MODE_RECORD;
+
+public class KPreparedStatement implements PreparedStatement {
  PreparedStatement wrappedPreparedStatement;
 
  public KPreparedStatement(PreparedStatement pst) {
   wrappedPreparedStatement = pst;
  }
 
- public KPreparedStatement() {
-
- }
-
- public Object clone() throws CloneNotSupportedException {
-  // Assign the shallow copy to
-  // new reference variable t
-  System.out.println("I am cloned !! ");
-  KPreparedStatement t = (KPreparedStatement) super.clone();
-
-  // Creating a deep copy for c
-//  t.wrappedPreparedStatement = new KPreparedStatement();
-//        t.c.x = c.x;
-//        t.c.y = c.y;
-
-  // Create a new object for the field c
-  // and assign it to shallow copy obtained,
-  // to make it a deep copy
-  return t;
- }
-
  @Override
  public ResultSet executeQuery() throws SQLException {
 
-  ResultSet rs = wrappedPreparedStatement.executeQuery();
-
-
-  System.out.println("fokfglksdmfgl");
-
-  String xml = "";
-  XStream xstream = null;
-  xstream = new XStream();
-  xstream.alias("ResultSet", ResultSet.class);
-  xstream.addPermission(AnyTypePermission.ANY);
-  xml = xstream.toXML(rs);
-//  System.out.println(xml);
-//  Gson gson = new GsonBuilder().setPrettyPrinting().create();
-  ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-  OutputStreamWriter writer = new OutputStreamWriter(outputStream);
+  Kcontext kctx = Context.getCtx();
+  mode.ModeType mode = MODE_RECORD; //kctx.getMode();
+  ResultSet rs = null;
+  switch (mode) {
+   case MODE_TEST:
+    // don't run
+    break;
+   case MODE_RECORD:
+    rs = wrappedPreparedStatement.executeQuery();
+    break;
+   default:
+    System.out.println("integrations: Not in a valid sdk mode");
+  }
+  ProcessDep<ResultSet> resultSetProcessDep = new ProcessDep<>(rs);
+  Map<String, String> meta = resultSetProcessDep.getMeta();
+  depsobj rs2;
   try {
-   writer.write(xml);
-  } catch (IOException e) {
+   rs2 = ProcessD.ProcessDep(meta, rs);
+  } catch (InvalidProtocolBufferException e) {
    throw new RuntimeException(e);
   }
-  try {
-   writer.flush();
-  } catch (IOException e) {
-   throw new RuntimeException(e);
+  if (rs2.isMock()&&rs2.getRes()!=null){
+    rs = (ResultSet) rs2.getRes();
   }
-  byte[] data = outputStream.toByteArray();
-  System.out.println("THIS IS BYTE ARRAY !! ! ! "+ Arrays.toString(data));
-  String xml2 = new String(data, StandardCharsets.UTF_8);
-  System.out.println("str1 >> "+xml2);
-//  ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
-//  InputStreamReader reader = new InputStreamReader(inputStream);
-//  ResultSet res = (ResultSet) xstream.fromXML(reader,ResultSet.class);
-//  HierarchicalStreamCopier copier = new HierarchicalStreamCopier();
-//  HierarchicalStreamDriver binaryDriver = new BinaryDriver();
-//  HierarchicalStreamDriver jsonDriver = new JettisonMappedXmlDriver();
-//
-//  ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//  copier.copy(new Dom4JDriver.createReader(dom4JDocument), binaryDriver.createWriter(baos));
-//  byte[] data = baos.getBytes();
-
-  ResultSet res = (ResultSet) xstream.fromXML(xml2);
   System.out.println("HOGYAAaaaaaaaaaa .........");
-  KResultSet krs = new KResultSet(res);
-  return krs;
+
+  return new KResultSet(rs);
  }
 
  @Override

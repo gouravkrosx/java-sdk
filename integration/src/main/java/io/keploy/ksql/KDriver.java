@@ -24,10 +24,29 @@ public class KDriver implements java.sql.Driver {
 
     private String _lastInsertId = "-1";
 
-    public KDriver(){
+    public KDriver()  {
 //        super();
         wrappedDriver = new Driver();
+//        try {
+//            wrappedDriver = getWrappedDriver();
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e);
+//        }
+
         System.out.println("hello inside no-arg constructor");
+    }
+
+    private Driver getWrappedDriver() throws SQLException {
+        String driver = "";
+
+        switch (driver) {
+            case "postgres":
+                return new org.postgresql.Driver();
+            case "mysql":
+//                return new com.mysql.cj.jdbc.Driver();
+            default:
+                return null;
+        }
     }
 
     @Override

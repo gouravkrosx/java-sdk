@@ -7,6 +7,7 @@ import io.keploy.grpc.stubs.RegressionServiceGrpc;
 import io.keploy.grpc.stubs.Service;
 import io.keploy.regression.KeployInstance;
 import io.keploy.regression.context.Context;
+import io.keploy.regression.context.Kcontext;
 import io.keploy.regression.keploy.Keploy;
 import okhttp3.*;
 import org.apache.logging.log4j.LogManager;
@@ -14,6 +15,8 @@ import org.apache.logging.log4j.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
@@ -27,21 +30,20 @@ public class GrpcService {
 
     private static final Logger logger = LogManager.getLogger(GrpcService.class);
 
-    private static String CROSS = new String(Character.toChars(0x274C));
-    private static RegressionServiceGrpc.RegressionServiceBlockingStub blockingStub = null;
+    private static final String CROSS = new String(Character.toChars(0x274C));
+    public static RegressionServiceGrpc.RegressionServiceBlockingStub blockingStub = null;
     private static Keploy k = null;
-
     public static ManagedChannel channel;
     private static OkHttpClient client;
 
     public GrpcService() {
         // Channels are secure by default (via SSL/TLS). For the example we disable TLS to avoid
         // needing certificates.
-        channel = ManagedChannelBuilder.forTarget("localhost:8081")
+        k = KeployInstance.getInstance().getKeploy();
+        channel = ManagedChannelBuilder.forTarget(getTarget())
                 .usePlaintext()
                 .build();
         blockingStub = RegressionServiceGrpc.newBlockingStub(channel);
-        k = KeployInstance.getInstance().getKeploy();
 
         client = new OkHttpClient.Builder()
                 .connectTimeout(6, TimeUnit.MINUTES) // connect timeout
@@ -50,10 +52,26 @@ public class GrpcService {
                 .build();
     }
 
-    public static void CaptureTestCases(KeployInstance ki, String reqBody, Map<String, String> params, Service.HttpResp httpResp, String protocolType) {
+
+
+    private String getTarget() {
+        String target;
+        URL url;
+        try {
+            url = new URL(k.getCfg().getServer().getURL());
+        } catch (MalformedURLException e) {
+            logger.error("unable to make GrpcConnection", e);
+            return "localhost:8081";
+        }
+
+        return url.getAuthority();
+    }
+
+    public static void CaptureTestCases(String reqBody, Map<String, String> params, Service.HttpResp httpResp, String protocolType) {
         logger.debug("inside CaptureTestCases");
 
-        HttpServletRequest ctxReq = Context.getCtx().getRequest();
+        Kcontext kctx = Context.getCtx();
+        HttpServletRequest ctxReq = kctx.getRequest();
         if (ctxReq == null) {
             logger.error(CROSS + " failed to get keploy context");
             return;
@@ -90,7 +108,9 @@ public class GrpcService {
         testCaseReqBuilder.setURI(ctxReq.getRequestURI());
         testCaseReqBuilder.setHttpResp(httpResp);
         testCaseReqBuilder.setHttpReq(httpReq);
-        testCaseReqBuilder.setTestCasePath(k.getCfg().getApp().getPath());
+        testCaseReqBuilder.setTestCasePath(k.getCfg().getApp().getTestPath());
+        testCaseReqBuilder.setMockPath(k.getCfg().getApp().getMockPath());
+        testCaseReqBuilder.addAllMocks(kctx.getMock());
 
         Capture(testCaseReqBuilder.build());
     }
@@ -123,7 +143,7 @@ public class GrpcService {
             denoise(id, testCaseReq);
         }
         // doing this will save thread-local from memory leak.
-        Context.cleanup();
+//        Context.cleanup();
     }
 
     public static void denoise(String id, Service.TestCaseReq testCaseReq) {
@@ -139,6 +159,8 @@ public class GrpcService {
         testCaseBuilder.setCaptured(testCaseReq.getCaptured());
         testCaseBuilder.setURI(testCaseReq.getURI());
         testCaseBuilder.setHttpReq(testCaseReq.getHttpReq());
+        testCaseBuilder.addAllMocks(testCaseReq.getMocksList());
+        testCaseBuilder.addAllDeps(testCaseReq.getDependencyList());
         Service.TestCase testCase = testCaseBuilder.build();
 
         Service.HttpResp resp2 = simulate(testCase);
@@ -149,7 +171,8 @@ public class GrpcService {
         testReqBuilder.setID(id);
         testReqBuilder.setResp(resp2);
         testReqBuilder.setAppID(k.getCfg().getApp().getName());
-        testReqBuilder.setTestCasePath(k.getCfg().getApp().getPath());
+        testReqBuilder.setTestCasePath(k.getCfg().getApp().getTestPath());
+        testReqBuilder.setMockPath(k.getCfg().getApp().getMockPath());
         Service.TestReq bin2 = testReqBuilder.build();
 
         // send de-noise request to server
@@ -165,8 +188,13 @@ public class GrpcService {
     public static Service.HttpResp simulate(Service.TestCase testCase) {
         logger.debug("inside simulate");
 
-        String simResBody = null;
-        long statusCode = 0;
+        //add mocks to shared context
+        k.getDeps().put(testCase.getId(), testCase.getDepsList());
+        k.getMocks().put(testCase.getId(), testCase.getMocksList());
+        k.getMocktime().put(testCase.getId(), testCase.getCaptured());
+
+        String simResBody;
+        long statusCode;
         final Map<String, List<String>> responseHeaders = new HashMap<>();
 
         Request request = getCustomRequest(testCase);
@@ -182,6 +210,8 @@ public class GrpcService {
                 simResBody = responseBody.string();
             }
 
+            logger.debug("response body got from simulate request: {}", simResBody);
+
             Map<String, List<String>> resHeadMap = response.headers().toMultimap();
 
             for (String key : resHeadMap.keySet()) {
@@ -190,6 +220,8 @@ public class GrpcService {
                 responseHeaders.put(key, values);
             }
             statusCode = response.code();
+            logger.debug("status code got from simulate request: {}", statusCode);
+
             if (response.body() != null) {
                 Objects.requireNonNull(response.body()).close();
             }
@@ -198,6 +230,12 @@ public class GrpcService {
         }
 
         Service.HttpResp.Builder resp = GetResp(testCase.getId());
+
+        // add comment
+        k.getDeps().remove(testCase.getId());
+        k.getMocks().remove(testCase.getId());
+        k.getMocktime().remove(testCase.getId());
+
         return resp.build();
     }
 
@@ -226,7 +264,7 @@ public class GrpcService {
 
     public static void Test() {
         try {
-            TimeUnit.SECONDS.sleep(5);
+            TimeUnit.SECONDS.sleep(k.getCfg().getApp().getDelay().getSeconds());
         } catch (InterruptedException e) {
             logger.error(CROSS + " (Test): unable to sleep", e);
         }
@@ -267,7 +305,7 @@ public class GrpcService {
             });
         }
 
-        // wait until all tests does not get completed.
+        // wait for all tests to get completed.
         try {
             wg.await();
         } catch (InterruptedException e) {
@@ -282,7 +320,11 @@ public class GrpcService {
 
     public static String start(String total) {
         logger.debug("inside start function");
-        Service.startRequest startRequest = Service.startRequest.newBuilder().setApp(k.getCfg().getApp().getName()).setTestCasePath(k.getCfg().getApp().getPath()).setTotal(total).build();
+        Service.startRequest startRequest = Service.startRequest.newBuilder()
+                .setApp(k.getCfg().getApp().getName())
+                .setTestCasePath(k.getCfg().getApp().getTestPath())
+                .setMockPath(k.getCfg().getApp().getMockPath())
+                .setTotal(total).build();
 
         Service.startResponse startResponse = null;
 
@@ -319,7 +361,9 @@ public class GrpcService {
                     .setApp(k.getCfg().getApp().getName())
                     .setLimit("25")
                     .setOffset(String.valueOf(i))
-                    .setTestCasePath(k.getCfg().getApp().getPath()).build();
+                    .setTestCasePath(k.getCfg().getApp().getTestPath())
+                    .setMockPath(k.getCfg().getApp().getMockPath())
+                    .build();
 
             Service.getTCSResponse tcs = null;
 
@@ -370,7 +414,9 @@ public class GrpcService {
                 .setAppID(k.getCfg().getApp().getName())
                 .setRunID(testrunId)
                 .setResp(resp)
-                .setTestCasePath(k.getCfg().getApp().getPath()).build();
+                .setTestCasePath(k.getCfg().getApp().getTestPath())
+                .setMockPath(k.getCfg().getApp().getMockPath())
+                .build();
 
         Service.testResponse testResponse;
         try {

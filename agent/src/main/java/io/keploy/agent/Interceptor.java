@@ -20,8 +20,6 @@ public class Interceptor {
             @Origin Method method
     ) throws Exception {
         System.out.println("Here is the flow ...");
-//        System.out.println("ZUpER " + zuper);
-//        System.out.println("MEthod " + method);
 
         try {
             System.out.println("Inside sql Interceptor");
@@ -31,9 +29,8 @@ public class Interceptor {
             xstream.alias("sql_response", ResultSet.class);
             xstream.addPermission(AnyTypePermission.ANY);
             String xml = xstream.toXML(response);
-            System.out.println(xml);
-
             ResultSet res = (ResultSet) xstream.fromXML(xml);
+            System.out.println("********* KSQL INTERcePtor *************");
             System.out.println(res);
             return res;
         } catch (Exception e) {

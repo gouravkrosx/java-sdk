@@ -41,6 +41,35 @@
           <artifactId>byte-buddy</artifactId>
           <version>1.12.16</version>
       </dependency>
+      <dependency>
+          <groupId>io.keploy</groupId>
+          <artifactId>core</artifactId>
+          <version>1.0.0-SNAPSHOT</version>
+          <scope>compile</scope>
+      </dependency>
+      <dependency>
+          <groupId>io.keploy</groupId>
+          <artifactId>api</artifactId>
+          <version>1.0.0-SNAPSHOT</version>
+          <scope>compile</scope>
+      </dependency>
+      <dependency>
+          <groupId>io.keploy</groupId>
+          <artifactId>common</artifactId>
+          <version>1.0.0-SNAPSHOT</version>
+          <scope>compile</scope>
+      </dependency>
+      <dependency>
+          <groupId>io.keploy</groupId>
+          <artifactId>models</artifactId>
+          <version>1.0.0-SNAPSHOT</version>
+          <scope>compile</scope>
+      </dependency>
+      <dependency>
+          <groupId>net.bytebuddy</groupId>
+          <artifactId>byte-buddy-agent</artifactId>
+          <version>1.12.16</version>
+      </dependency>
       <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
       <dependency>
           <groupId>mysql</groupId>

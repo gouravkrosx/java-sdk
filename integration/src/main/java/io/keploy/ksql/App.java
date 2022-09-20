@@ -1,24 +1,24 @@
 package io.keploy.ksql;
 
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class App {
-    private final String url = "jdbc:mysql://localhost:3306/mysql";
-    private final String user = "mysql";
-    private final String password = "mysql";
+    private static final String url = "jdbc:mysql://localhost:3306/mysql";
+    private static final String user = "mysql";
+    private static final String password = "mysql";
 
 
     //    docker exec awesome_mayer mysql -u mysql -pmysql -e “drop schema demo_table; create schema demo_table;”
     public static void main(String[] args) throws SQLException {
-        App app = new App();
+
 //        app.connect();
         System.out.println("begin test mysql jdbc");
+        Connection conn = null;
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            java.sql.Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mysql", "mysql", "mysql");
-            java.sql.PreparedStatement pp = conn.prepareStatement("select * from demo_table where age = ?");
+            KDriver driverInst = new KDriver();
+            DriverManager.registerDriver(driverInst);
+            conn = DriverManager.getConnection(url, user, password);
+            PreparedStatement pp = conn.prepareStatement("select * from demo_table where age = ?");
             pp.setInt(1, 21);
             ResultSet re = pp.executeQuery();
             String result;

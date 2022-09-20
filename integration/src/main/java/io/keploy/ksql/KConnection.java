@@ -2,8 +2,7 @@ package io.keploy.ksql;
 
 //import org.postgresql.jdbc.PgConnection;
 
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.security.AnyTypePermission;
+import io.keploy.utils.ProcessDep;
 
 import java.sql.*;
 import java.util.Map;
@@ -32,46 +31,7 @@ public class KConnection implements Connection {
     public PreparedStatement prepareStatement(String sql) throws SQLException {
         System.out.println("INSIDE PREPARED STATEMENT of connection !! "+sql);
         PreparedStatement pst = wrappedCon.prepareStatement(sql);
-        PreparedStatement kpst = new KPreparedStatement(pst);
-        String xml = "";
-        XStream xstream = null;
-        xstream = new XStream();
-        xstream.alias("PreparedStatement", PreparedStatement.class);
-        xstream.addPermission(AnyTypePermission.ANY);
-        xml = xstream.toXML(kpst);
-        System.out.println(xml);
-        PreparedStatement res = (PreparedStatement) xstream.fromXML(xml);
-
-//        Demo d = new Demo(kpst);
-//
-//        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-//
-//        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-//        OutputStreamWriter writer = new OutputStreamWriter(outputStream);
-//        String s = gson.toJson(sql);
-//        try {
-//            writer.write(s);
-//            writer.flush();
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//        byte[] data = outputStream.toByteArray();
-//
-//        ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
-//        InputStreamReader reader = new InputStreamReader(inputStream);
-//        String kpst3 = gson.fromJson(reader, String.class);
-//        System.out.println(kpst3);
-//         MyStatements myStatements = new MyStatements(123,"adf");
-//        XStream xstream = new XStream();
-//        xstream.alias("MyStatements", MyStatements.class);
-//        xstream.addPermission(AnyTypePermission.ANY);
-//
-//        String xml = xstream.toXML(myStatements);
-//        System.out.println(xml);
-//        MyStatements res = (MyStatements) xstream.fromXML(xml);
-
-
-        return res;
+        return new KPreparedStatement(pst);
     }
 
     @Override

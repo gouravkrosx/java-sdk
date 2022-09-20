@@ -11,7 +11,6 @@ public class KResultSet implements ResultSet,Cloneable {
  ResultSet wrappedResultSet;
 
  public KResultSet(ResultSet rs) {
-  clone();
   wrappedResultSet = rs;
  }
 

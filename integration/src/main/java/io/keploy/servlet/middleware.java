@@ -37,10 +37,10 @@ import java.util.concurrent.CountDownLatch;
 public class middleware extends HttpFilter {
 
     private static final Logger logger = LogManager.getLogger(middleware.class);
-    private static String CROSS = new String(Character.toChars(0x274C));
+    private static final String CROSS = new String(Character.toChars(0x274C));
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
+    public void init(FilterConfig filterConfig) {
         //just like wait groups, used in testfile
         CountDownLatch countDownLatch = HaltThread.getInstance().getCountDownLatch();
 
@@ -62,16 +62,28 @@ public class middleware extends HttpFilter {
         if (kpath != null && kpath.length() > 0 && !Paths.get(kpath).isAbsolute()) {
             Path effectivePath = Paths.get("").resolve(kpath).toAbsolutePath();
             String absolutePath = effectivePath.normalize().toString();
-            appConfig.setPath(absolutePath);
+            appConfig.setTestPath(absolutePath);
         } else if (kpath == null || kpath.length() == 0) {
-            String currDir = System.getProperty("user.dir") + "/src/test/e2e";
-            appConfig.setPath(currDir);
+            String currDir = System.getProperty("user.dir") + "/src/test/e2e/keploy-tests";
+            appConfig.setTestPath(currDir);
+        }
+
+        //Path for exported mocks
+        String mpath = System.getenv("MOCK_PATH");
+
+        if (mpath != null && mpath.length() > 0 && !Paths.get(mpath).isAbsolute()) {
+            Path effectivePath = Paths.get("").resolve(mpath).toAbsolutePath();
+            String absolutePath = effectivePath.normalize().toString();
+            appConfig.setMockPath(absolutePath);
+        } else if (mpath == null || mpath.length() == 0) {
+            String currDir = System.getProperty("user.dir") + "/src/test/e2e/mocks";
+            appConfig.setMockPath(currDir);
         }
 
         ServerConfig serverConfig = new ServerConfig();
 
         if (System.getenv("DENOISE") != null) {
-            serverConfig.setDenoise(Boolean.valueOf(System.getenv("DENOISE")));
+            serverConfig.setDenoise(Boolean.parseBoolean(System.getenv("DENOISE")));
         }
 
         if (System.getenv("KEPLOY_URL") != null) {
@@ -83,7 +95,9 @@ public class middleware extends HttpFilter {
         kp.setCfg(cfg);
         ki.setKeploy(kp);
 
-        GrpcService grpcService = new GrpcService();
+
+        // its mere purpose is to call the constructor to initialize some fields
+        new GrpcService();
 
         final mode.ModeType KEPLOY_MODE = mode.getMode();
 
@@ -91,7 +105,7 @@ public class middleware extends HttpFilter {
             if (KEPLOY_MODE != null && KEPLOY_MODE.equals(mode.ModeType.MODE_TEST)) {
                 try {
                     logger.debug("starting tests");
-                    grpcService.Test();
+                    GrpcService.Test();
                 } catch (Exception e) {
                     logger.error(CROSS + " failed to run tests", e);
                 }
@@ -122,7 +136,11 @@ public class middleware extends HttpFilter {
         }
 
         //setting request context
-        Context.setCtx(new Kcontext(request, null, null, null));
+        Kcontext kctx = new Kcontext();
+        kctx.setRequest(request);
+        kctx.setMode(mode.getMode());
+        Context.setCtx(kctx);
+
 
         ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
         ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
@@ -150,7 +168,8 @@ public class middleware extends HttpFilter {
 
         if (keploy_test_id != null) {
             k.getResp().put(keploy_test_id, simulateResponse);
-            Context.cleanup();
+            kctx.setTestId(keploy_test_id);
+//            Context.cleanup();
             logger.debug("response in keploy resp map: {}", k.getResp().get(keploy_test_id));
         } else {
 
@@ -161,7 +180,7 @@ public class middleware extends HttpFilter {
             Service.HttpResp httpResp = builder.setStatusCode(responseWrapper.getStatus()).setBody(responseBody).putAllHeader(headerMap).build();
 
             try {
-                GrpcService.CaptureTestCases(ki, requestBody, urlParams, httpResp, protocolType);
+                GrpcService.CaptureTestCases(requestBody, urlParams, httpResp, protocolType);
             } catch (Exception e) {
                 logger.error(CROSS + " failed to capture testCases", e);
             }
@@ -172,7 +191,7 @@ public class middleware extends HttpFilter {
     }
 
 
-    public Map<String, Service.StrArr> getResponseHeaderMap(ContentCachingResponseWrapper contentCachingResponseWrapper) {
+    private Map<String, Service.StrArr> getResponseHeaderMap(ContentCachingResponseWrapper contentCachingResponseWrapper) {
 
         Map<String, Service.StrArr> map = new HashMap<>();
 
@@ -195,7 +214,7 @@ public class middleware extends HttpFilter {
         return map;
     }
 
-    public Map<String, String> setUrlParams(Map<String, String[]> param) {
+    private Map<String, String> setUrlParams(Map<String, String[]> param) {
         Map<String, String> urlParams = new HashMap<>();
 
         for (String key : param.keySet()) {

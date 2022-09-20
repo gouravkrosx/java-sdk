@@ -36,6 +36,7 @@
         <url>https://github.com/keploy/java-sdk.git</url>
     </scm>
     <modules>
+        <module>agent</module>
         <module>core</module>
         <module>api</module>
         <module>integration</module>
@@ -43,7 +44,6 @@
         <module>test-module</module>
         <module>models</module>
         <module>keploy-sdk</module>
-        <module>agent</module>
     </modules>
 
     <properties>
