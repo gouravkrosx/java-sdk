@@ -9,12 +9,10 @@ public class KResultSetMetaData implements ResultSetMetaData {
     public KResultSetMetaData(ResultSetMetaData getMetaData) {
         wrappedResultSetMetaData = getMetaData;
     }
-
     @Override
     public int getColumnCount() throws SQLException {
         return wrappedResultSetMetaData.getColumnCount();
     }
-
     @Override
     public boolean isAutoIncrement(int column) throws SQLException {
         return wrappedResultSetMetaData.isAutoIncrement(column);

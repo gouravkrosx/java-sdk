@@ -1,5 +1,6 @@
 package io.keploy.utils;
 
+import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.keploy.grpc.stubs.Service;
 import io.keploy.regression.context.Context;
@@ -9,6 +10,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,7 +18,9 @@ import java.util.Map;
 public class ProcessD {
 
     private static final Logger logger = LogManager.getLogger(Process.class);
-    public static ArrayList<ArrayList<Byte>> binResult = new ArrayList<>();
+    //    public static ArrayList<Byte> binResult;
+    public static byte[] binResult;
+
 
     @SafeVarargs
     public static <T> depsobj ProcessDep(Map<String, String> meta, T... outputs) throws InvalidProtocolBufferException {
@@ -26,11 +30,10 @@ public class ProcessD {
             logger.error("dependency mocking failed: failed to get Keploy context");
             return new depsobj<String>(false, null);
         }
-        Service.Dependency dependency = kctx.getDeps().get(0);
+        List<Service.Dependency> deps = kctx.getDeps();
+//        System.out.println("Here is the deps !! " + deps);
         switch (kctx.getMode()) {
             case MODE_TEST:
-                List<Service.Dependency> deps = kctx.getDeps();
-
                 if (deps == null || deps.size() == 0) {
                     logger.error("dependency mocking failed: incorrect number of dependencies in keploy context with test id: " + kctx.getTestId());
                     return new depsobj<>(false, null);
@@ -44,7 +47,7 @@ public class ProcessD {
                 for (T output : outputs) {
                     ProcessDep<T> ser = new ProcessDep<>(output);
 
-                    byte[] bin = dependency.getDataList().get(0).getBin().toByteArray();
+                    byte[] bin = deps.get(0).toByteArray();
                     T obj = ser.decode(bin);
                     if (obj == null) {
                         logger.error("dependency mocking failed: failed to decode object for testID : {}", kctx.getTestId());
@@ -63,23 +66,31 @@ public class ProcessD {
                 return new depsobj<>(true, res);
 
             case MODE_RECORD:
+                Service.Dependency.Builder Dependencies = Service.Dependency.newBuilder();
+                List<Service.DataBytes> dblist = new ArrayList<>(); //this is 2d array
+                Map<String, String> metas = new HashMap<>();
                 for (T output : outputs) {
                     ProcessDep<T> ser = new ProcessDep<>(output);
-                    binResult = ser.encode(output);
+                    binResult = ser.encoded(output);
+                    metas = ser.getMeta();
                     if (binResult == null) {
                         logger.error("dependency capture failed: failed to encode object test id : {}", kctx.getTestId());
                         return new depsobj<>(false, null);
                     }
+                    Service.DataBytes dbytes = Service.DataBytes.newBuilder().setBin(ByteString.copyFrom(binResult)).build();
+                    dblist.add(dbytes);
                 }
-                Service.Dependency.Builder Dependencies = Service.Dependency.newBuilder();
+                Service.Dependency genericDeps = Dependencies.addAllData(dblist).build();
 
-                Dependencies.setName(meta.get("name")).setType(meta.get("type")).putAllMeta(meta);
+                kctx.getDeps().add(genericDeps);
+                Service.DataBytes d = Dependencies.getDataList().get(0);
 
-                for (int i = 0; i < binResult.size(); i++) {
-                    // ab yha pe ek ek karke values set kardenge poore 2d array ki deps k
-                    byte[] data = convertBytes(binResult.get(i));
-                    Dependencies.setData(i, Service.DataBytes.parseFrom(data));
-                }
+//                System.out.println(d.getBin());
+
+
+                Dependencies.setName(metas.get("name")).setType(metas.get("type")).putAllMeta(metas);
+
+
         }
 
         return new depsobj<>(false, null);

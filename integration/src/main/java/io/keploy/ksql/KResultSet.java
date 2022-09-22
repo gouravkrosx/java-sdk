@@ -1,5 +1,13 @@
 package io.keploy.ksql;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+import io.keploy.regression.context.Context;
+import io.keploy.regression.context.Kcontext;
+import io.keploy.regression.mode;
+import io.keploy.utils.ProcessD;
+import io.keploy.utils.ProcessDep;
+import io.keploy.utils.depsobj;
+
 import java.io.*;
 import java.math.BigDecimal;
 import java.net.URL;
@@ -20,9 +28,34 @@ public class KResultSet implements ResultSet,Cloneable {
 
  @Override
  public boolean next() throws SQLException {
-  System.out.println("Mocked Result Set !!");
-  boolean r = wrappedResultSet.next();
-  return r;
+  Kcontext kctx = Context.getCtx();
+  mode.ModeType mode = kctx.getMode();
+
+  System.out.println("INSIDE next !@@!!! ");
+  boolean rs = false;
+  switch (mode) {
+   case MODE_TEST:
+    // don't run
+    break;
+   case MODE_RECORD:
+    rs = wrappedResultSet.next();
+    break;
+   default:
+    System.out.println("integrations: Not in a valid sdk mode");
+  }
+  ProcessDep<Boolean> resultSetProcessDep = new ProcessDep<>(rs);
+  Map<String, String> meta = resultSetProcessDep.getMeta();
+  depsobj rs2;
+  try {
+   rs2 = ProcessD.ProcessDep(meta, rs);
+  } catch (InvalidProtocolBufferException e) {
+   throw new RuntimeException(e);
+  }
+  if (rs2.isMock() && rs2.getRes() != null) {
+   rs = (boolean) rs2.getRes();
+   System.out.println("HOGYAAaaaaaaaaaa .........");
+  }
+  return rs;
  }
 
  @Override

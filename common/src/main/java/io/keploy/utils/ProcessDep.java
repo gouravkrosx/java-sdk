@@ -1,6 +1,5 @@
 package io.keploy.utils;
 
-import com.google.common.primitives.Bytes;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.security.AnyTypePermission;
@@ -8,14 +7,12 @@ import com.thoughtworks.xstream.security.AnyTypePermission;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class ProcessDep<T> {
-    private byte[] data;
 
-    Map<String, String> meta= new HashMap<>();
+
     ArrayList<ArrayList<Byte>> arrLL = new ArrayList<>();
     T obj;
     String xml = "";
@@ -28,7 +25,7 @@ public class ProcessDep<T> {
         return this.obj;
     }
 
-    public ArrayList<ArrayList<Byte>> encode(T output) {
+    public byte[] encoded(T output) {
         xstream = new XStream();
         xstream.alias("T", output.getClass());
         xstream.addPermission(AnyTypePermission.ANY);
@@ -45,11 +42,7 @@ public class ProcessDep<T> {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        this.data = outputStream.toByteArray();
-        ArrayList<Byte> byteList = (ArrayList<Byte>) Bytes.asList(this.data);
-        arrLL.add(byteList);
-        return arrLL;
+        return outputStream.toByteArray();
     }
 
     public T decode(byte[] bin) {
@@ -61,13 +54,14 @@ public class ProcessDep<T> {
     public static void  call(){
 
     }
-    private depsobj<T> processDeps(T obj) throws InvalidProtocolBufferException {
-       // meta fill here
-        depsobj var = ProcessD.ProcessDep(meta, obj);
-        return var;
-    }
+//    private depsobj<T> processDeps(T obj) throws InvalidProtocolBufferException {
+//       // meta fill here
+////        depsobj var = ProcessD.ProcessDep(meta, obj);
+////        return var;
+//    }
 
     public Map<String, String> getMeta() {
+        Map<String, String> meta= new HashMap<>();
         meta.put("name", "SQL");
         meta.put("type", "SQL_DB");
         meta.put("operation", "executeQuery");

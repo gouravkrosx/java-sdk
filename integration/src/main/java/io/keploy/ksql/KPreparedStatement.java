@@ -1,6 +1,5 @@
 package io.keploy.ksql;
 
-
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.keploy.regression.context.Context;
 import io.keploy.regression.context.Kcontext;
@@ -18,8 +17,6 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
-import static io.keploy.regression.mode.ModeType.MODE_RECORD;
-
 public class KPreparedStatement implements PreparedStatement {
  PreparedStatement wrappedPreparedStatement;
 
@@ -31,7 +28,9 @@ public class KPreparedStatement implements PreparedStatement {
  public ResultSet executeQuery() throws SQLException {
 
   Kcontext kctx = Context.getCtx();
-  mode.ModeType mode = MODE_RECORD; //kctx.getMode();
+  mode.ModeType mode = kctx.getMode();
+
+  System.out.println("INSIDE EXECUTE QUERY !@@!!! ");
   ResultSet rs = null;
   switch (mode) {
    case MODE_TEST:
@@ -44,17 +43,18 @@ public class KPreparedStatement implements PreparedStatement {
     System.out.println("integrations: Not in a valid sdk mode");
   }
   ProcessDep<ResultSet> resultSetProcessDep = new ProcessDep<>(rs);
-  Map<String, String> meta = resultSetProcessDep.getMeta();
+  Map<String, String> meta = new HashMap<>();
+  meta = resultSetProcessDep.getMeta();
   depsobj rs2;
   try {
    rs2 = ProcessD.ProcessDep(meta, rs);
   } catch (InvalidProtocolBufferException e) {
    throw new RuntimeException(e);
   }
-  if (rs2.isMock()&&rs2.getRes()!=null){
-    rs = (ResultSet) rs2.getRes();
+  if (rs2.isMock() && rs2.getRes() != null) {
+   rs = (ResultSet) rs2.getRes();
+
   }
-  System.out.println("HOGYAAaaaaaaaaaa .........");
 
   return new KResultSet(rs);
  }

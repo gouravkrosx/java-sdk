@@ -2,7 +2,13 @@ package io.keploy.ksql;
 
 //import org.postgresql.jdbc.PgConnection;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+import io.keploy.regression.context.Context;
+import io.keploy.regression.context.Kcontext;
+import io.keploy.regression.mode;
+import io.keploy.utils.ProcessD;
 import io.keploy.utils.ProcessDep;
+import io.keploy.utils.depsobj;
 
 import java.sql.*;
 import java.util.Map;
@@ -15,7 +21,7 @@ public class KConnection implements Connection {
 
     public KConnection(Connection pgConnection) throws SQLException {
         this.wrappedCon = pgConnection;
-        System.out.println("ihoooo connection !!");
+        System.out.println("hooks connection !!");
     }
 
 
@@ -29,9 +35,35 @@ public class KConnection implements Connection {
 
     @Override
     public PreparedStatement prepareStatement(String sql) throws SQLException {
-        System.out.println("INSIDE PREPARED STATEMENT of connection !! "+sql);
-        PreparedStatement pst = wrappedCon.prepareStatement(sql);
-        return new KPreparedStatement(pst);
+        System.out.println("INSIDE PREPARED STATEMENT of connection !! " + sql);
+        Kcontext kctx = Context.getCtx();
+        mode.ModeType mode = kctx.getMode();
+
+        System.out.println("INSIDE prepareStatement !@@!!! ");
+        PreparedStatement rs = null;
+        switch (mode) {
+            case MODE_TEST:
+                // don't run
+                break;
+            case MODE_RECORD:
+                rs = wrappedCon.prepareStatement(sql);
+                break;
+            default:
+                System.out.println("integrations: Not in a valid sdk mode");
+        }
+        ProcessDep<PreparedStatement> resultSetProcessDep = new ProcessDep<>(rs);
+        Map<String, String> meta = resultSetProcessDep.getMeta();
+        depsobj rs2;
+        try {
+            rs2 = ProcessD.ProcessDep(meta, rs);
+        } catch (InvalidProtocolBufferException e) {
+            throw new RuntimeException(e);
+        }
+        if (rs2.isMock() && rs2.getRes() != null) {
+            rs = (PreparedStatement) rs2.getRes();
+            System.out.println("HOGYAAaaaaaaaaaa .........");
+        }
+        return new KPreparedStatement(rs);
     }
 
     @Override
@@ -130,7 +162,36 @@ public class KConnection implements Connection {
 
     @Override
     public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency) throws SQLException {
-        return new KPreparedStatement(wrappedCon.prepareStatement(sql, resultSetType, resultSetConcurrency));
+        System.out.println("INSIDE PREPARED STATEMENT of connection !! " + sql);
+        Kcontext kctx = Context.getCtx();
+        mode.ModeType mode = kctx.getMode();
+
+        System.out.println("INSIDE prepareStatement !@@!!! ");
+        PreparedStatement rs = null;
+        switch (mode) {
+            case MODE_TEST:
+                // don't run
+                break;
+            case MODE_RECORD:
+                rs = wrappedCon.prepareStatement(sql, resultSetType, resultSetConcurrency);
+                break;
+            default:
+                System.out.println("integrations: Not in a valid sdk mode");
+        }
+        ProcessDep<PreparedStatement> resultSetProcessDep = new ProcessDep<>(rs);
+        Map<String, String> meta = resultSetProcessDep.getMeta();
+        depsobj rs2;
+        try {
+            rs2 = ProcessD.ProcessDep(meta, rs);
+        } catch (InvalidProtocolBufferException e) {
+            throw new RuntimeException(e);
+        }
+        if (rs2.isMock() && rs2.getRes() != null) {
+            rs = (PreparedStatement) rs2.getRes();
+            System.out.println("HOGYAAaaaaaaaaaa .........");
+        }
+
+        return new KPreparedStatement(rs);
     }
 
     @Override
@@ -185,8 +246,35 @@ public class KConnection implements Connection {
 
     @Override
     public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
-        PreparedStatement ps = wrappedCon.prepareStatement(sql, resultSetType, resultSetConcurrency, resultSetHoldability);
-        return new KPreparedStatement(ps);
+        System.out.println("INSIDE PREPARED STATEMENT of connection !! " + sql);
+        Kcontext kctx = Context.getCtx();
+        mode.ModeType mode = kctx.getMode();
+
+        System.out.println("INSIDE prepareStatement !@@!!! ");
+        PreparedStatement rs = null;
+        switch (mode) {
+            case MODE_TEST:
+                // don't run
+                break;
+            case MODE_RECORD:
+                rs= wrappedCon.prepareStatement(sql, resultSetType, resultSetConcurrency, resultSetHoldability);
+                break;
+            default:
+                System.out.println("integrations: Not in a valid sdk mode");
+        }
+        ProcessDep<PreparedStatement> resultSetProcessDep = new ProcessDep<>(rs);
+        Map<String, String> meta = resultSetProcessDep.getMeta();
+        depsobj rs2;
+        try {
+            rs2 = ProcessD.ProcessDep(meta, rs);
+        } catch (InvalidProtocolBufferException e) {
+            throw new RuntimeException(e);
+        }
+        if (rs2.isMock() && rs2.getRes() != null) {
+            rs = (PreparedStatement) rs2.getRes();
+            System.out.println("HOGYAAaaaaaaaaaa .........");
+        }
+        return new KPreparedStatement(rs);
     }
 
     @Override
@@ -196,17 +284,102 @@ public class KConnection implements Connection {
 
     @Override
     public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException {
-        return new KPreparedStatement(wrappedCon.prepareStatement(sql, autoGeneratedKeys));
+        System.out.println("INSIDE PREPARED STATEMENT of connection !! " + sql);
+        Kcontext kctx = Context.getCtx();
+        mode.ModeType mode = kctx.getMode();
+
+        System.out.println("INSIDE prepareStatement !@@!!! ");
+        PreparedStatement rs = null;
+        switch (mode) {
+            case MODE_TEST:
+                // don't run
+                break;
+            case MODE_RECORD:
+                rs= wrappedCon.prepareStatement(sql, autoGeneratedKeys);
+                break;
+            default:
+                System.out.println("integrations: Not in a valid sdk mode");
+        }
+        ProcessDep<PreparedStatement> resultSetProcessDep = new ProcessDep<>(rs);
+        Map<String, String> meta = resultSetProcessDep.getMeta();
+        depsobj rs2;
+        try {
+            rs2 = ProcessD.ProcessDep(meta, rs);
+        } catch (InvalidProtocolBufferException e) {
+            throw new RuntimeException(e);
+        }
+        if (rs2.isMock() && rs2.getRes() != null) {
+            rs = (PreparedStatement) rs2.getRes();
+            System.out.println("HOGYAAaaaaaaaaaa .........");
+        }
+        return new KPreparedStatement(rs);
     }
 
     @Override
     public PreparedStatement prepareStatement(String sql, int[] columnIndexes) throws SQLException {
-        return new KPreparedStatement(wrappedCon.prepareStatement(sql, columnIndexes));
+        System.out.println("INSIDE PREPARED STATEMENT of connection !! " + sql);
+        Kcontext kctx = Context.getCtx();
+        mode.ModeType mode = kctx.getMode();
+
+        System.out.println("INSIDE prepareStatement !@@!!! ");
+        PreparedStatement rs = null;
+        switch (mode) {
+            case MODE_TEST:
+                // don't run
+                break;
+            case MODE_RECORD:
+                rs= wrappedCon.prepareStatement(sql, columnIndexes);
+                break;
+            default:
+                System.out.println("integrations: Not in a valid sdk mode");
+        }
+        ProcessDep<PreparedStatement> resultSetProcessDep = new ProcessDep<>(rs);
+        Map<String, String> meta = resultSetProcessDep.getMeta();
+        depsobj rs2;
+        try {
+            rs2 = ProcessD.ProcessDep(meta, rs);
+        } catch (InvalidProtocolBufferException e) {
+            throw new RuntimeException(e);
+        }
+        if (rs2.isMock() && rs2.getRes() != null) {
+            rs = (PreparedStatement) rs2.getRes();
+            System.out.println("HOGYAAaaaaaaaaaa .........");
+        }
+        return new KPreparedStatement(rs);
     }
 
     @Override
     public PreparedStatement prepareStatement(String sql, String[] columnNames) throws SQLException {
-        return new KPreparedStatement(wrappedCon.prepareStatement(sql, columnNames));
+        System.out.println("INSIDE PREPARED STATEMENT of connection !! " + sql);
+        Kcontext kctx = Context.getCtx();
+        mode.ModeType mode = kctx.getMode();
+
+        System.out.println("INSIDE prepareStatement !@@!!! ");
+        PreparedStatement rs = null;
+        switch (mode) {
+            case MODE_TEST:
+                // don't run
+                break;
+            case MODE_RECORD:
+                rs= wrappedCon.prepareStatement(sql, columnNames);
+                break;
+            default:
+                System.out.println("integrations: Not in a valid sdk mode");
+        }
+        ProcessDep<PreparedStatement> resultSetProcessDep = new ProcessDep<>(rs);
+        Map<String, String> meta = resultSetProcessDep.getMeta();
+        depsobj rs2;
+        try {
+            rs2 = ProcessD.ProcessDep(meta, rs);
+        } catch (InvalidProtocolBufferException e) {
+            throw new RuntimeException(e);
+        }
+        if (rs2.isMock() && rs2.getRes() != null) {
+            rs = (PreparedStatement) rs2.getRes();
+            System.out.println("HOGYAAaaaaaaaaaa .........");
+        }
+        return new KPreparedStatement(rs);
+
     }
 
     @Override

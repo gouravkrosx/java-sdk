@@ -1,6 +1,7 @@
 package io.keploy.ksql;
 
 import org.postgresql.Driver;
+import org.postgresql.jdbc.PgConnection;
 
 import java.sql.Connection;
 import java.sql.DriverPropertyInfo;
@@ -25,20 +26,12 @@ public class KDriver implements java.sql.Driver {
     private String _lastInsertId = "-1";
 
     public KDriver()  {
-//        super();
         wrappedDriver = new Driver();
-//        try {
-//            wrappedDriver = getWrappedDriver();
-//        } catch (SQLException e) {
-//            throw new RuntimeException(e);
-//        }
-
         System.out.println("hello inside no-arg constructor");
     }
 
     private Driver getWrappedDriver() throws SQLException {
         String driver = "";
-
         switch (driver) {
             case "postgres":
                 return new org.postgresql.Driver();
@@ -52,6 +45,7 @@ public class KDriver implements java.sql.Driver {
     @Override
     public Connection connect(String url, Properties info) throws SQLException {
         System.out.println("HI THERE Mocked!");
+//       PgConnection pgConnection = new PgConnection(null, info, url);
         _connection = wrappedDriver.connect(url, info);
         Connection kobj = new KConnection(_connection);
         return kobj;

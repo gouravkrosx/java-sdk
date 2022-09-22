@@ -53,7 +53,6 @@ public class GrpcService {
     }
 
 
-
     private String getTarget() {
         String target;
         URL url;
@@ -111,6 +110,7 @@ public class GrpcService {
         testCaseReqBuilder.setTestCasePath(k.getCfg().getApp().getTestPath());
         testCaseReqBuilder.setMockPath(k.getCfg().getApp().getMockPath());
         testCaseReqBuilder.addAllMocks(kctx.getMock());
+        testCaseReqBuilder.addAllDependency(kctx.getDeps());
 
         Capture(testCaseReqBuilder.build());
     }
@@ -142,6 +142,7 @@ public class GrpcService {
         if (noise) {
             denoise(id, testCaseReq);
         }
+
         // doing this will save thread-local from memory leak.
 //        Context.cleanup();
     }
@@ -189,9 +190,11 @@ public class GrpcService {
         logger.debug("inside simulate");
 
         //add mocks to shared context
-        k.getDeps().put(testCase.getId(), testCase.getDepsList());
-        k.getMocks().put(testCase.getId(), testCase.getMocksList());
+        k.getMocks().put(testCase.getId(), new ArrayList<>(testCase.getMocksList()));
         k.getMocktime().put(testCase.getId(), testCase.getCaptured());
+
+        //add dependency to shared context
+        k.getDeps().put(testCase.getId(), new ArrayList<>(testCase.getDepsList()));
 
         String simResBody;
         long statusCode;
@@ -231,7 +234,7 @@ public class GrpcService {
 
         Service.HttpResp.Builder resp = GetResp(testCase.getId());
 
-        // add comment
+        // add comment (why are you removing it)
         k.getDeps().remove(testCase.getId());
         k.getMocks().remove(testCase.getId());
         k.getMocktime().remove(testCase.getId());
@@ -252,7 +255,12 @@ public class GrpcService {
         Service.HttpResp.Builder respBuilder = Service.HttpResp.newBuilder();
 
         try {
-            respBuilder.setBody(httpResp.getBody()).setStatusCode(httpResp.getStatusCode()).putAllHeader(httpResp.getHeaderMap());
+            respBuilder.setBody(httpResp.getBody())
+                    .setStatusCode(httpResp.getStatusCode())
+                    .setStatusMessage(httpResp.getStatusMessage())
+                    .setProtoMajor(httpResp.getProtoMajor())
+                    .setProtoMinor(httpResp.getProtoMinor())
+                    .putAllHeader(httpResp.getHeaderMap());
         } catch (Exception e) {
             logger.error(CROSS + " failed getting response for http request", e);
             return Service.HttpResp.newBuilder();
@@ -478,6 +486,9 @@ public class GrpcService {
         String method = testCase.getHttpReq().getMethod();
         String body = testCase.getHttpReq().getBody();
         String targetUrl = "http://" + host + ":" + port + url;
+        String testId = testCase.getId();
+
+        System.out.println("testId: " + testId);
 
         logger.debug("simulate request's url: {}", targetUrl);
         Map<String, Service.StrArr> headerMap = testCase.getHttpReq().getHeaderMap();
@@ -490,19 +501,19 @@ public class GrpcService {
                         .url(targetUrl)
                         .addHeader("content-type", "application/json")
                         .addHeader("accept", "application/json")
-                        .addHeader("KEPLOY_TEST_ID", testCase.getId()).build();
+                        .addHeader("KEPLOY_TEST_ID", testId).build();
             case "DELETE":
                 return reqBuilder.delete()
                         .url(targetUrl)
                         .addHeader("content-type", "application/json")
                         .addHeader("accept", "application/json")
-                        .addHeader("KEPLOY_TEST_ID", testCase.getId()).build();
+                        .addHeader("KEPLOY_TEST_ID", testId).build();
             default:
                 return reqBuilder.method(method, RequestBody.create(body.getBytes(StandardCharsets.UTF_8)))
                         .url(targetUrl)
                         .addHeader("content-type", "application/json")
                         .addHeader("accept", "application/json")
-                        .addHeader("KEPLOY_TEST_ID", testCase.getId()).build();
+                        .addHeader("KEPLOY_TEST_ID", testId).build();
         }
     }
 
