@@ -1,39 +1,55 @@
 package io.keploy.ksql;
 
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.security.AnyTypePermission;
+import io.keploy.utils.ProcessD;
+
 import java.sql.*;
 
+import static io.keploy.utils.ProcessD.*;
+
+
 public class App {
-    private static final String url = "jdbc:mysql://localhost:3306/mysql";
-    private static final String user = "mysql";
-    private static final String password = "mysql";
+    private static final String url = "jdbc:postgresql://localhost:5438/postgres";
+    private static final String user = "postgres";
+    private static final String password = "postgres";
 
 
     //    docker exec awesome_mayer mysql -u mysql -pmysql -e “drop schema demo_table; create schema demo_table;”
-    public static void main(String[] args) throws SQLException {
+    public static <T> void main(String[] args) throws SQLException {
 
 //        app.connect();
         System.out.println("begin test mysql jdbc");
         Connection conn = null;
         try {
-            KDriver driverInst = new KDriver();
-            DriverManager.registerDriver(driverInst);
+//            KDriver driverInst = new KDriver();
+//            DriverManager.registerDriver(driverInst);
             conn = DriverManager.getConnection(url, user, password);
-            PreparedStatement pp = conn.prepareStatement("select * from demo_table where age = ?");
-            pp.setInt(1, 21);
-            ResultSet re = pp.executeQuery();
-            String result;
-            if (re.next()) {
-                result = "name is :" + re.getString(1) + ", age is :" + re.getInt(2) + ", score is :" + re
-                        .getInt(3);
-                System.out.println("result is " + result);
-            }
+            PreparedStatement pp = conn.prepareStatement("select * from books");
+
+            byte[] data = ProcessD.encodedPreparedStatement(pp);
+        //test
+            PreparedStatement qq = ProcessD.decodePreparedStatement(data);//(PreparedStatement)xstream.fromXML(xml);
+            System.out.println(qq);
+
+
+//            pp.setInt(1, 21);
+            ResultSet rs = qq.executeQuery();
+            while(rs.next())
+                System.out.println(rs.getInt(1)+"  "+rs.getString(2)+"  "+rs.getString(3));
             conn.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        System.out.println("end test mysql jdbc");
+        }catch(Exception e){ System.out.println(e);}
     }
-}
+
+//        System.out.println("end test mysql jdbc");
+//        Deserial f = new KDeserialize(12745);
+//        byte[] data = encoded(f);
+//        //test
+//        Deserial g = decode(data,new KDeserialize());
+//        System.out.println(g);
+
+    }
+
 
 /*
     Some executable queries :

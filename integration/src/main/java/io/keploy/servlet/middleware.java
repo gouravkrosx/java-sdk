@@ -2,7 +2,6 @@ package io.keploy.servlet;
 
 import io.keploy.grpc.stubs.Service;
 import io.keploy.regression.KeployInstance;
-import io.keploy.regression.Mock;
 import io.keploy.regression.context.Context;
 import io.keploy.regression.context.Kcontext;
 import io.keploy.regression.keploy.AppConfig;
@@ -96,15 +95,6 @@ public class middleware extends HttpFilter {
         cfg.setServer(serverConfig);
         kp.setCfg(cfg);
 
-        //just to test if it is now loading or not.
-        new Mock();
-
-        //setting keploy context
-        //setting context
-        Kcontext kctx = new Kcontext();
-        kctx.setMode(mode.getMode());
-        Context.setCtx(kctx);
-
         // its mere purpose is to call the constructor to initialize some fields
         new GrpcService();
 
@@ -146,15 +136,17 @@ public class middleware extends HttpFilter {
 
         //setting  context
         Kcontext kctx = new Kcontext();
-        Context.setCtx(kctx);
         kctx.setMode(mode.getMode());
         kctx.setRequest(request);
+
+        Context.setCtx(kctx);
 
         String keploy_test_id = request.getHeader("KEPLOY_TEST_ID");
         logger.debug("KEPLOY_TEST_ID: {}", keploy_test_id);
 
         if (keploy_test_id != null) {
             kctx.setTestId(keploy_test_id);
+            kctx.setMode(mode.ModeType.MODE_TEST);
             kctx.getMock().addAll(k.getMocks().get(keploy_test_id));
             kctx.getDeps().addAll(k.getDeps().get(keploy_test_id));
         }

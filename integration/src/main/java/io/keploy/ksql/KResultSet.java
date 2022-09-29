@@ -5,7 +5,6 @@ import io.keploy.regression.context.Context;
 import io.keploy.regression.context.Kcontext;
 import io.keploy.regression.mode;
 import io.keploy.utils.ProcessD;
-import io.keploy.utils.ProcessDep;
 import io.keploy.utils.depsobj;
 
 import java.io.*;
@@ -28,34 +27,35 @@ public class KResultSet implements ResultSet,Cloneable {
 
  @Override
  public boolean next() throws SQLException {
-  Kcontext kctx = Context.getCtx();
-  mode.ModeType mode = kctx.getMode();
-
-  System.out.println("INSIDE next !@@!!! ");
-  boolean rs = false;
-  switch (mode) {
-   case MODE_TEST:
-    // don't run
-    break;
-   case MODE_RECORD:
-    rs = wrappedResultSet.next();
-    break;
-   default:
-    System.out.println("integrations: Not in a valid sdk mode");
-  }
-  ProcessDep<Boolean> resultSetProcessDep = new ProcessDep<>(rs);
-  Map<String, String> meta = resultSetProcessDep.getMeta();
-  depsobj rs2;
-  try {
-   rs2 = ProcessD.ProcessDep(meta, rs);
-  } catch (InvalidProtocolBufferException e) {
-   throw new RuntimeException(e);
-  }
-  if (rs2.isMock() && rs2.getRes() != null) {
-   rs = (boolean) rs2.getRes();
-   System.out.println("HOGYAAaaaaaaaaaa .........");
-  }
-  return rs;
+//  Kcontext kctx = Context.getCtx();
+//  System.out.println("INSIDE next !@@!!!");
+//  if (kctx == null) {
+//   return false;
+//  }
+//  mode.ModeType mode = kctx.getMode();
+//  boolean rs = false;
+//  switch (mode) {
+//   case MODE_TEST:
+//    // don't run
+//    break;
+//   case MODE_RECORD:
+//    rs = wrappedResultSet.next();
+//    break;
+//   default:
+//    System.out.println("integrations: Not in a valid sdk mode");
+//  }
+//  Map<String, String> meta = ProcessD.getMeta(rs);
+//  depsobj rs2;
+//  try {
+//   rs2 = ProcessD.ProcessDep(meta, rs);
+//  } catch (InvalidProtocolBufferException e) {
+//   throw new RuntimeException(e);
+//  }
+//  if (rs2.isMock() && rs2.getRes() != null) {
+//   rs = (boolean) rs2.getRes().get(0);
+//   System.out.println("HOGYAAaaaaaaaaaa .........");
+//  }
+  return wrappedResultSet.next();
  }
 
  @Override

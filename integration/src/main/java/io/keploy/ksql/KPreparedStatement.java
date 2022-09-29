@@ -5,8 +5,8 @@ import io.keploy.regression.context.Context;
 import io.keploy.regression.context.Kcontext;
 import io.keploy.regression.mode;
 import io.keploy.utils.ProcessD;
-import io.keploy.utils.ProcessDep;
 import io.keploy.utils.depsobj;
+import org.mockito.Mockito;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -24,14 +24,21 @@ public class KPreparedStatement implements PreparedStatement {
   wrappedPreparedStatement = pst;
  }
 
+ public KPreparedStatement() {
+
+ }
+
  @Override
  public ResultSet executeQuery() throws SQLException {
-
   Kcontext kctx = Context.getCtx();
+  if (kctx == null) {
+   ResultSet resultSet = Mockito.mock(ResultSet.class);
+   return new KResultSet(resultSet);
+  }
   mode.ModeType mode = kctx.getMode();
 
   System.out.println("INSIDE EXECUTE QUERY !@@!!! ");
-  ResultSet rs = null;
+  ResultSet rs = new KResultSet();
   switch (mode) {
    case MODE_TEST:
     // don't run
@@ -42,9 +49,9 @@ public class KPreparedStatement implements PreparedStatement {
    default:
     System.out.println("integrations: Not in a valid sdk mode");
   }
-  ProcessDep<ResultSet> resultSetProcessDep = new ProcessDep<>(rs);
+
   Map<String, String> meta = new HashMap<>();
-  meta = resultSetProcessDep.getMeta();
+  meta = ProcessD.getMeta(rs);
   depsobj rs2;
   try {
    rs2 = ProcessD.ProcessDep(meta, rs);
@@ -52,10 +59,8 @@ public class KPreparedStatement implements PreparedStatement {
    throw new RuntimeException(e);
   }
   if (rs2.isMock() && rs2.getRes() != null) {
-   rs = (ResultSet) rs2.getRes();
-
+   rs = (ResultSet) rs2.getRes().get(0);
   }
-
   return new KResultSet(rs);
  }
 
@@ -336,10 +341,38 @@ public class KPreparedStatement implements PreparedStatement {
 
  @Override
  public ResultSet executeQuery(String sql) throws SQLException {
-  System.out.println("second Execute Query !! in prepared Statement ");
-  ResultSet rs = wrappedPreparedStatement.executeQuery();
-  ResultSet krs = new KResultSet(rs);
-  return krs;
+  Kcontext kctx = Context.getCtx();
+  if (kctx == null) {
+   ResultSet resultSet = Mockito.mock(ResultSet.class);
+   return new KResultSet(resultSet);
+  }
+  mode.ModeType mode = kctx.getMode();
+
+  System.out.println("INSIDE EXECUTE QUERY !@@!!! ");
+  ResultSet rs = new KResultSet();
+  switch (mode) {
+   case MODE_TEST:
+    // don't run
+    break;
+   case MODE_RECORD:
+    rs = wrappedPreparedStatement.executeQuery(sql);
+    break;
+   default:
+    System.out.println("integrations: Not in a valid sdk mode");
+  }
+
+  Map<String, String> meta = new HashMap<>();
+  meta = ProcessD.getMeta(rs);
+  depsobj rs2;
+  try {
+   rs2 = ProcessD.ProcessDep(meta, rs);
+  } catch (InvalidProtocolBufferException e) {
+   throw new RuntimeException(e);
+  }
+  if (rs2.isMock() && rs2.getRes() != null) {
+   rs = (KResultSet) rs2.getRes().get(0);
+  }
+  return new KResultSet(rs);
  }
 
  @Override
