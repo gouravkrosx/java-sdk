@@ -8,6 +8,9 @@ public class KStatement implements Statement {
     public KStatement(Statement st) {
         wrappedStatement = st;
     }
+    public KStatement(){
+
+    }
 
     @Override
     public ResultSet executeQuery(String sql) throws SQLException {

@@ -26,7 +26,7 @@ public class ProcessD {
     private static final Logger logger = LogManager.getLogger(ProcessD.class);
     //    public static ArrayList<Byte> binResult;
     public static byte[] binResult;
-
+    public static XStream xstream = new XStream();
 
     @SafeVarargs
     public static <T> depsobj ProcessDep(Map<String, String> meta, T... outputs) throws InvalidProtocolBufferException {
@@ -68,10 +68,14 @@ public class ProcessD {
                         case "io.keploy.ksql.KConnection":
                             obj = decodeConnection(binResult);
                             break;
-//                        case "java.lang.Boolean":
-//                            obj = decode(binResult);
-//                            break;
+                        case "java.lang.Integer":
+                            obj = decodeInt(binResult);
+                            break;
+                        case "java.lang.Boolean":
+                            obj = decodeBoolean(binResult);
+                            break;
                         default:
+
 
                     }
 
@@ -110,10 +114,14 @@ public class ProcessD {
                         case "io.keploy.ksql.KConnection":
                             binResult = encodedConnection((Connection) output);
                             break;
-//                        case "java.lang.Boolean":
-//                            binResult = encoded((boolean)output);
-//                            break;
+                        case "java.lang.Integer":
+                            binResult = encodedInt((Integer) output);
+                            break;
+                        case "java.lang.Boolean":
+                            binResult = encodedBoolean((Boolean) output);
+                            break;
                         default:
+
                     }
                     metas = getMeta(output);
                     if (binResult == null) {
@@ -123,12 +131,9 @@ public class ProcessD {
                     Service.DataBytes dbytes = Service.DataBytes.newBuilder().setBin(ByteString.copyFrom(binResult)).build();
                     dblist.add(dbytes);
                 }
-                Service.Dependency genericDeps = Dependencies.addAllData(dblist).build();
+                Service.Dependency genericDeps = Dependencies.addAllData(dblist).setName(metas.get("name")).setType(metas.get("type")).putAllMeta(metas).build();
 
                 kctx.getDeps().add(genericDeps);
-                Service.DataBytes d = Dependencies.getDataList().get(0);
-
-                Dependencies.setName(metas.get("name")).setType(metas.get("type")).putAllMeta(metas);
 
                 List<Service.Mock.Object> lobj = new ArrayList<>();
 
@@ -154,9 +159,10 @@ public class ProcessD {
         return new depsobj<>(false, null);
     }
 
-    public static byte[] encoded(boolean output) {
+    public static <T> byte[] encoded(T output) {
+
         XStream xstream = new XStream();
-        xstream.alias("boolean", boolean.class);
+        xstream.alias("Generic", output.getClass());
         xstream.addPermission(AnyTypePermission.ANY);
         xstream.ignoreUnknownElements();
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -164,14 +170,16 @@ public class ProcessD {
         xstream.toXML(output, writer);
         return outputStream.toByteArray();
     }
-    public static boolean decode(byte[] bin) {
+
+    public static <T> T decode(byte[] bin) {
 
         ByteArrayInputStream input = new ByteArrayInputStream(bin);
         XStream xstream = new XStream();
         xstream.addPermission(AnyTypePermission.ANY);
-        boolean object = false;
+
+        T object = null;
         try {
-            object = (boolean) xstream.fromXML(input);
+            object = (T) xstream.fromXML(input);
             input.close();
 
         } catch (Exception e) {
@@ -184,7 +192,7 @@ public class ProcessD {
         Map<String, String> meta = new HashMap<>();
         meta.put("name", "SQL");
         meta.put("type", "SQL_DB");
-        meta.put("operation", "executeQuery");
+        meta.put("operation", obj.getClass().getName());
         return meta;
     }
 
@@ -269,4 +277,55 @@ public class ProcessD {
         return object;
     }
 
+    public static byte[] encodedInt(int output) {
+        xstream.alias("int", Integer.class);
+        xstream.addPermission(AnyTypePermission.ANY);
+        xstream.ignoreUnknownElements();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        OutputStreamWriter writer = new OutputStreamWriter(outputStream);
+        xstream.toXML(output, writer);
+        return outputStream.toByteArray();
+    }
+
+    public static int decodeInt(byte[] bin) {
+
+        ByteArrayInputStream input = new ByteArrayInputStream(bin);
+        XStream xstream = new XStream();
+        xstream.addPermission(AnyTypePermission.ANY);
+        int object = 0;
+        try {
+            object = (int) xstream.fromXML(input);
+            input.close();
+
+        } catch (Exception e) {
+            System.out.println("Exception while decoding ..... " + e);
+        }
+        return object;
+    }
+
+    public static byte[] encodedBoolean(boolean output) {
+        xstream.alias("boolean", Boolean.class);
+        xstream.addPermission(AnyTypePermission.ANY);
+        xstream.ignoreUnknownElements();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        OutputStreamWriter writer = new OutputStreamWriter(outputStream);
+        xstream.toXML(output, writer);
+        return outputStream.toByteArray();
+    }
+
+    public static boolean decodeBoolean(byte[] bin) {
+
+        ByteArrayInputStream input = new ByteArrayInputStream(bin);
+        XStream xstream = new XStream();
+        xstream.addPermission(AnyTypePermission.ANY);
+        boolean object = false;
+        try {
+            object = (boolean) xstream.fromXML(input);
+            input.close();
+
+        } catch (Exception e) {
+            System.out.println("Exception while decoding ..... " + e);
+        }
+        return object;
+    }
 }

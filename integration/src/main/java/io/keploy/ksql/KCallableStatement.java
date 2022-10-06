@@ -15,6 +15,9 @@ public class KCallableStatement implements CallableStatement {
     public KCallableStatement(CallableStatement prepareCall) {
         wrappedCallableStatement = prepareCall;
     }
+    public KCallableStatement(){
+
+    }
 
     @Override
     public void registerOutParameter(int parameterIndex, int sqlType) throws SQLException {

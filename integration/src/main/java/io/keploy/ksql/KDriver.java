@@ -1,17 +1,15 @@
 package io.keploy.ksql;
 
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.security.AnyTypePermission;
 import io.keploy.regression.context.Context;
 import io.keploy.regression.context.Kcontext;
+import io.keploy.regression.mode;
 import lombok.SneakyThrows;
 import org.mockito.Mockito;
 import org.postgresql.Driver;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverPropertyInfo;
@@ -29,6 +27,8 @@ public class KDriver implements java.sql.Driver {
     private String _password;
 
     private String _databaseName;
+    public final Kcontext kctx = Context.getCtx();
+    io.keploy.regression.mode.ModeType mode = null;
 
     private Integer _version = 1;
     private Connection _connection;
@@ -37,6 +37,12 @@ public class KDriver implements java.sql.Driver {
     private String _lastInsertId = "-1";
 
     public KDriver()  {
+        if (Objects.equals(System.getenv("KEPLOY_MODE"), "record")){
+            mode = io.keploy.regression.mode.ModeType.MODE_RECORD;
+        }
+        else if (Objects.equals(System.getenv("KEPLOY_MODE"), "test")){
+            mode = io.keploy.regression.mode.ModeType.MODE_TEST;
+        }
         wrappedDriver = new Driver();
         System.out.println("hello inside no-arg constructor");
     }
@@ -53,44 +59,23 @@ public class KDriver implements java.sql.Driver {
         }
     }
 
-    @SneakyThrows
+
     @Override
-    public Connection connect(String url, Properties info)  {
-        System.out.println("HI THERE Mocked!");
-//       PgConnection pgConnection = new PgConnection(null, info, url);
-        Kcontext kctx = Context.getCtx();
-        if (Objects.equals(System.getenv("KEPLOY_MODE"), "test")) {
-            Connection jdbcConnection = Mockito.mock(Connection.class);
-            XStream xstream = new XStream();
-            xstream.alias("Connection", Connection.class);
-            xstream.addPermission(AnyTypePermission.ANY);
-            String xml = xstream.toXML(wrappedDriver.connect(url, info));
-            Path path
-                    = Paths.get("/Users/sarthak_1/Documents/Keploy/java/java-sdk/conn.txt");
-
-            // Custom string as an input
-
-            // Try block to check for exceptions
-//            try {
-//                // Now calling Files.writeString() method
-//                // with path , content & standard charsets
-//                Files.writeString(path, xml,
-//                        StandardCharsets.UTF_8);
-//            }
-////
-////            // Catch block to handle the exception
-//            catch (IOException ex) {
-//                // Print messqage exception occurred as
-//                // invalid. directory local path is passed
-//                System.out.print("Invalid Path");
-//            }
-            jdbcConnection  = (Connection) xstream.fromXML(xml);
-            return new KConnection(jdbcConnection);
+    public Connection connect(String url, Properties info) throws SQLException {
+        System.out.println("INSIDE CONNECTION !!!!!!!!! ");
+//        if (Objects.equals(System.getenv("KEPLOY_MODE"), "test")){
+//            Connection conn = new KConnection();
+//            MockConnection(conn);
+//            return conn;
+//        }
+        Connection resultSet = null;
+        try {
+            resultSet = wrappedDriver.connect(url, info);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-        _connection = wrappedDriver.connect(url, info);
-//        Connection kobj = new KConnection((Connection) when(_connection).thenReturn(jdbcConnection));
-        Connection kobj = new KConnection(_connection);
-        return kobj;
+        return new KConnection(resultSet);
+
     }
 
     @Override
@@ -106,7 +91,7 @@ public class KDriver implements java.sql.Driver {
 
     @Override
     public int getMajorVersion() {
-       int getMajor = wrappedDriver.getMajorVersion();
+        int getMajor = wrappedDriver.getMajorVersion();
         return getMajor;
     }
 
@@ -126,5 +111,31 @@ public class KDriver implements java.sql.Driver {
     @Override
     public Logger getParentLogger() throws SQLFeatureNotSupportedException {
         return wrappedDriver.getParentLogger();
+    }
+
+    static String readFile(String path, Charset encoding)
+            throws IOException {
+        byte[] encoded = Files.readAllBytes(Paths.get(path));
+        return new String(encoded, encoding);
+    }
+
+    private void MockConnection(Connection conn) throws SQLException {
+
+        conn.setReadOnly(true);
+        conn.setClientInfo(null);
+        conn.prepareStatement("");
+        conn.prepareStatement(null);
+        conn.prepareStatement(null);
+        conn.setClientInfo(null);
+        conn.setClientInfo(null);
+        conn.commit();
+        conn.nativeSQL("");
+        conn.getSchema();
+        conn.isValid(5);
+        conn.setNetworkTimeout(null,5);
+        conn.rollback();
+        conn.getAutoCommit();
+        conn.isClosed();
+        conn.isReadOnly();
     }
 }
