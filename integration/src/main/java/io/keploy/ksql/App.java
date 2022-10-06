@@ -19,27 +19,31 @@ public class App {
     public static <T> void main(String[] args) throws SQLException {
 
 //        app.connect();
-//        System.out.println("begin test mysql jdbc");
-//        Connection conn = null;
-//        try {
-////            KDriver driverInst = new KDriver();
-////            DriverManager.registerDriver(driverInst);
-//            conn = DriverManager.getConnection(url, user, password);
-//            PreparedStatement pp = conn.prepareStatement("select * from books");
-//
-//            byte[] data = ProcessD.encodedPreparedStatement(pp);
-//        //test
-//            PreparedStatement qq = ProcessD.decodePreparedStatement(data);//(PreparedStatement)xstream.fromXML(xml);
-//            System.out.println(qq);
-//
-//
-////            pp.setInt(1, 21);
-//            ResultSet rs = qq.executeQuery();
-//            while(rs.next())
-//                System.out.println(rs.getInt(1)+"  "+rs.getString(2)+"  "+rs.getString(3));
-//            conn.close();
-//        }catch(Exception e){ System.out.println(e);}
-//    }
+        System.out.println("begin test mysql jdbc");
+        Connection conn = null;
+        try {
+//            KDriver driverInst = new KDriver();
+//            DriverManager.registerDriver(driverInst);
+            conn = DriverManager.getConnection(url, user, password);
+            PreparedStatement pp = conn.prepareStatement("select * from books");
+
+            byte[] data = ProcessD.encodedPreparedStatement(pp);
+            //test
+            PreparedStatement qq = ProcessD.decodePreparedStatement(data);//(PreparedStatement)xstream.fromXML(xml);
+            System.out.println(qq);
+
+
+            pp.setInt(1, 21);
+            ResultSet rs = qq.executeQuery();
+            while (rs.next())
+                if (rs.getString(2) == "gourav"){
+                    break;
+            }
+                System.out.println(rs.getInt(1) + "  " + rs.getString(2) + "  " + rs.getString(3));
+            conn.close();
+        } catch (Exception e) {
+            System.out.println(e);
+        }
 
 
         Deserial f = new KDeserialize(12745);
@@ -50,6 +54,7 @@ public class App {
 
     }
 }
+
 
 
 /*

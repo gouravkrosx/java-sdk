@@ -12,6 +12,7 @@ import org.mockito.Mockito;
 import java.sql.*;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
@@ -207,53 +208,38 @@ public class KConnection implements Connection {
 
     @Override
     public void close() throws SQLException {
-        Kcontext kctx = Context.getCtx();
-        if (kctx == null) {
-            return;
-        }
-        mode.ModeType mode = kctx.getMode();
-
-        switch (mode) {
-            case MODE_TEST:
-                // don't run
-                break;
-            case MODE_RECORD:
-                wrappedCon.close();
-                break;
-            default:
-                System.out.println("integrations: Not in a valid sdk mode");
-        }
+       wrappedCon.close();
 
     }
 
     @Override
     public boolean isClosed() throws SQLException {
-        Kcontext kctx = Context.getCtx();
-        if (kctx == null) {
-            return false;
-        }
-        mode.ModeType mode = kctx.getMode();
+//        Kcontext kctx = Context.getCtx();
+//        if (kctx == null) {
+//            return false;
+//        }
+//        mode.ModeType mode = kctx.getMode();
         boolean rs = false;
-        switch (mode) {
-            case MODE_TEST:
-                // don't run
-                break;
-            case MODE_RECORD:
+//        switch (mode) {
+//            case MODE_TEST:
+//                // don't run
+//                break;
+//            case MODE_RECORD:
                 rs = wrappedCon.isClosed();
-                break;
-            default:
-                System.out.println("integrations: Not in a valid sdk mode");
-        }
-        depsobj rs2;
-        try {
-            Map<String, String> meta = ProcessD.getMeta(rs);
-            rs2 = ProcessD.ProcessDep(meta, rs);
-        } catch (InvalidProtocolBufferException e) {
-            throw new RuntimeException(e);
-        }
-        if (rs2.isMock() && rs2.getRes() != null) {
-            rs = (boolean) rs2.getRes().get(0);
-        }
+//                break;
+//            default:
+//                System.out.println("integrations: Not in a valid sdk mode");
+//        }
+//        depsobj rs2;
+//        try {
+//            Map<String, String> meta = ProcessD.getMeta(rs);
+//            rs2 = ProcessD.ProcessDep(meta, rs);
+//        } catch (InvalidProtocolBufferException e) {
+//            throw new RuntimeException(e);
+//        }
+//        if (rs2.isMock() && rs2.getRes() != null) {
+//            rs = (boolean) rs2.getRes().get(0);
+//        }
         return rs;
 
     }
@@ -262,7 +248,7 @@ public class KConnection implements Connection {
     public DatabaseMetaData getMetaData() throws SQLException {
         Kcontext kctx = Context.getCtx();
         if (kctx == null) {
-            return wrappedCon.getMetaData();
+            return Mockito.mock(DatabaseMetaData.class);
         }
         mode.ModeType mode = kctx.getMode();
 
@@ -370,6 +356,9 @@ public class KConnection implements Connection {
 
     @Override
     public String getCatalog() throws SQLException {
+        if (Objects.equals(System.getenv("KEPLOY_MODE"), "test")){
+            return "KEPLOY_CATALOG";
+        }
         return wrappedCon.getCatalog();
     }
 

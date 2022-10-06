@@ -66,48 +66,193 @@ public class KPreparedStatement implements PreparedStatement {
 
  @Override
  public int executeUpdate() throws SQLException {
-  int k = wrappedPreparedStatement.executeUpdate();
-  return k;
+  Kcontext kctx = Context.getCtx();
+  if (kctx == null) {
+   return 0;
+  }
+  mode.ModeType mode = kctx.getMode();
+
+  int rs = 1;
+  switch (mode) {
+   case MODE_TEST:
+    // don't run
+    break;
+   case MODE_RECORD:
+    rs = wrappedPreparedStatement.executeUpdate();
+    System.out.println(rs);
+    break;
+   default:
+    System.out.println("integrations: Not in a valid sdk mode");
+  }
+
+  return rs;
  }
 
  @Override
  public void setNull(int parameterIndex, int sqlType) throws SQLException {
-  wrappedPreparedStatement.setNull(parameterIndex, sqlType);
+//  Kcontext kctx = Context.getCtx();
+//  if (kctx == null) {
+//   return;
+//  }
+//  mode.ModeType mode = kctx.getMode();
+//
+//  switch (mode) {
+//   case MODE_TEST:
+//    // don't run
+//    break;
+//   case MODE_RECORD:
+    wrappedPreparedStatement.setNull(parameterIndex, sqlType);
+//    break;
+//   default:
+//    System.out.println("integrations: Not in a valid sdk mode");
+//  }
+
  }
 
  @Override
  public void setBoolean(int parameterIndex, boolean x) throws SQLException {
-  wrappedPreparedStatement.setBoolean(parameterIndex, x);
+//  Kcontext kctx = Context.getCtx();
+//  if (kctx == null) {
+//   return;
+//  }
+//
+//  mode.ModeType mode = kctx.getMode();
+//  switch (mode) {
+//   case MODE_TEST:
+//    // don't run
+//    break;
+//   case MODE_RECORD:
+    wrappedPreparedStatement.setBoolean(parameterIndex, x);
+//    break;
+//   default:
+//    System.out.println("integrations: Not in a valid sdk mode");
+//  }
+
  }
 
  @Override
  public void setByte(int parameterIndex, byte x) throws SQLException {
-  wrappedPreparedStatement.setByte(parameterIndex, x);
+//  Kcontext kctx = Context.getCtx();
+//  if (kctx == null) {
+//   return;
+//  }
+//  mode.ModeType mode = kctx.getMode();
+//
+//  switch (mode) {
+//   case MODE_TEST:
+//    // don't run
+//    break;
+//   case MODE_RECORD:
+    wrappedPreparedStatement.setByte(parameterIndex, x);
+//    break;
+//   default:
+//    System.out.println("integrations: Not in a valid sdk mode");
+//  }
+
  }
 
  @Override
  public void setShort(int parameterIndex, short x) throws SQLException {
-  wrappedPreparedStatement.setShort(parameterIndex, x);
+//  Kcontext kctx = Context.getCtx();
+//  if (kctx == null) {
+//   return;
+//  }
+//  mode.ModeType mode = kctx.getMode();
+//
+//  switch (mode) {
+//   case MODE_TEST:
+//    // don't run
+//    break;
+//   case MODE_RECORD:
+    wrappedPreparedStatement.setShort(parameterIndex, x);
+//    break;
+//   default:
+//    System.out.println("integrations: Not in a valid sdk mode");
+//  }
+
  }
 
  @Override
  public void setInt(int parameterIndex, int x) throws SQLException {
-  wrappedPreparedStatement.setInt(parameterIndex, x);
+//  Kcontext kctx = Context.getCtx();
+//  if (kctx == null) {
+//   return;
+//  }
+//  mode.ModeType mode = kctx.getMode();
+//
+//  switch (mode) {
+//   case MODE_TEST:
+//    // don't run
+//    break;
+//   case MODE_RECORD:
+    wrappedPreparedStatement.setInt(parameterIndex, x);
+//    break;
+//   default:
+//    System.out.println("integrations: Not in a valid sdk mode");
+//  }
+
  }
 
  @Override
  public void setLong(int parameterIndex, long x) throws SQLException {
-  wrappedPreparedStatement.setLong(parameterIndex, x);
+//  Kcontext kctx = Context.getCtx();
+//  if (kctx == null) {
+//   return;
+//  }
+//  mode.ModeType mode = kctx.getMode();
+//
+//  switch (mode) {
+//   case MODE_TEST:
+//    // don't run
+//    break;
+//   case MODE_RECORD:
+    wrappedPreparedStatement.setLong(parameterIndex, x);
+//    break;
+//   default:
+//    System.out.println("integrations: Not in a valid sdk mode");
+//  }
  }
 
  @Override
  public void setFloat(int parameterIndex, float x) throws SQLException {
-  wrappedPreparedStatement.setFloat(parameterIndex, x);
+//  Kcontext kctx = Context.getCtx();
+//  if (kctx == null) {
+//
+//   return;
+//  }
+//  mode.ModeType mode = kctx.getMode();
+//
+//  switch (mode) {
+//   case MODE_TEST:
+//    // don't run
+//    break;
+//   case MODE_RECORD:
+    wrappedPreparedStatement.setFloat(parameterIndex, x);
+//    break;
+//   default:
+//    System.out.println("integrations: Not in a valid sdk mode");
+//  }
+
  }
 
  @Override
  public void setDouble(int parameterIndex, double x) throws SQLException {
-  wrappedPreparedStatement.setDouble(parameterIndex, x);
+//  Kcontext kctx = Context.getCtx();
+//  if (kctx == null) {
+//   return;
+//  }
+//  mode.ModeType mode = kctx.getMode();
+//
+//  switch (mode) {
+//   case MODE_TEST:
+//    // don't run
+//    break;
+//   case MODE_RECORD:
+    wrappedPreparedStatement.setDouble(parameterIndex, x);
+//    break;
+//   default:
+//    System.out.println("integrations: Not in a valid sdk mode");
+//  }
  }
 
  @Override

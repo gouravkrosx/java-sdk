@@ -62,12 +62,12 @@ public class KDriver implements java.sql.Driver {
 
     @Override
     public Connection connect(String url, Properties info) throws SQLException {
-        System.out.println("INSIDE CONNECTION !!!!!!!!! ");
-//        if (Objects.equals(System.getenv("KEPLOY_MODE"), "test")){
-//            Connection conn = new KConnection();
-//            MockConnection(conn);
-//            return conn;
-//        }
+
+        if (Objects.equals(System.getenv("KEPLOY_MODE"), "test")){
+            Connection conn = new KConnection();
+            MockConnection(conn);
+            return conn;
+        }
         Connection resultSet = null;
         try {
             resultSet = wrappedDriver.connect(url, info);
@@ -120,22 +120,22 @@ public class KDriver implements java.sql.Driver {
     }
 
     private void MockConnection(Connection conn) throws SQLException {
-
-        conn.setReadOnly(true);
-        conn.setClientInfo(null);
-        conn.prepareStatement("");
-        conn.prepareStatement(null);
-        conn.prepareStatement(null);
-        conn.setClientInfo(null);
-        conn.setClientInfo(null);
-        conn.commit();
-        conn.nativeSQL("");
-        conn.getSchema();
-        conn.isValid(5);
-        conn.setNetworkTimeout(null,5);
-        conn.rollback();
-        conn.getAutoCommit();
-        conn.isClosed();
-        conn.isReadOnly();
+//
+//        conn.setReadOnly(true);
+//        conn.setClientInfo(null);
+//        conn.prepareStatement("");
+//        conn.prepareStatement(null);
+//        conn.prepareStatement(null);
+//        conn.setClientInfo(null);
+//        conn.setClientInfo(null);
+//        conn.commit();
+//        conn.nativeSQL("");
+//        conn.getSchema();
+//        conn.isValid(5);
+//        conn.setNetworkTimeout(null,5);
+//        conn.rollback();
+//        conn.getAutoCommit();
+//        conn.isClosed();
+//        conn.isReadOnly();
     }
 }
