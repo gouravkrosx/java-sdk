@@ -493,7 +493,6 @@ public class KPreparedStatement implements PreparedStatement {
   }
   mode.ModeType mode = kctx.getMode();
 
-  System.out.println("INSIDE EXECUTE QUERY !@@!!! ");
   ResultSet rs = new KResultSet();
   switch (mode) {
    case MODE_TEST:

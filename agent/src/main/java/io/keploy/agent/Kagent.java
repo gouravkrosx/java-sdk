@@ -11,6 +11,7 @@ import java.lang.instrument.Instrumentation;
 import java.util.Objects;
 
 import static net.bytebuddy.matcher.ElementMatchers.named;
+import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 
 public class Kagent {
     private static void setMode(){
@@ -43,16 +44,16 @@ public class Kagent {
 
         new AgentBuilder.Default()
                 .with(new AgentBuilder.InitializationStrategy.SelfInjection.Eager())
-                .type(named("io.keploy.ksql.KPreparedStatement"))
-                .transform((builder, typeDescription, classLoader, javaModule, protectionDomain) -> {
-                    System.out.println("Inside transformer");
-                    ClassFileLocator.Compound compound = new ClassFileLocator.Compound(ClassFileLocator.ForClassLoader.of(classLoader),
-                            ClassFileLocator.ForClassLoader.ofSystemLoader());
-                    System.out.println("Inside Sql Transformer");
-                    return builder.method(named("executeQuery"))
-//                                    .and(returns(named("com.mysql.cj.jdbc.result.ResultSetInternalMethods"))))
-                            .intercept(MethodDelegation.to(TypePool.Default.of(compound).describe("io.keploy.agent.Interceptor").resolve()));
-                })
+//                .type(named("io.keploy.ksql.KPreparedStatement"))
+//                .transform((builder, typeDescription, classLoader, javaModule, protectionDomain) -> {
+//                    System.out.println("Inside transformer");
+//                    ClassFileLocator.Compound compound = new ClassFileLocator.Compound(ClassFileLocator.ForClassLoader.of(classLoader),
+//                            ClassFileLocator.ForClassLoader.ofSystemLoader());
+//                    System.out.println("Inside Sql Transformer");
+//                    return builder.method(named("executeQuery"))
+////                                    .and(returns(named("com.mysql.cj.jdbc.result.ResultSetInternalMethods"))))
+//                            .intercept(MethodDelegation.to(TypePool.Default.of(compound).describe("io.keploy.agent.Interceptor").resolve()));
+//                })
                 .type(named("org.springframework.boot.autoconfigure.jdbc.DataSourceProperties"))
                 .transform((builder, typeDescription, classLoader, javaModule, protectionDomain) -> {
 
@@ -66,6 +67,11 @@ public class Kagent {
                     System.out.println("Inside RegisterDriverAdvice2 Transformer");
                     return builder.method(named("determineDriverClassName"))
                             .intercept(MethodDelegation.to(TypePool.Default.ofSystemLoader().describe("io.keploy.agent.RegisterDriverAdvice_Interceptor").resolve()));
+                })
+                .type(named("org.springframework.boot.autoconfigure.orm.jpa.HibernateProperties"))
+                .transform((builder, typeDescription, classLoader, javaModule, protectionDomain) -> {
+                    System.out.println("Inside HibernateProperties Transformer");
+                    return builder.method(named("setDdlAuto").and(takesArgument(0, String.class))).intercept(Advice.to(TypePool.Default.ofSystemLoader().describe("io.keploy.agent.SetDdlAuto_Advice").resolve(), ClassFileLocator.ForClassLoader.ofSystemLoader()));
                 })
                 .installOn(instrumentation);
 

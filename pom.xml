@@ -10,7 +10,7 @@
     <packaging>pom</packaging>
 
     <name>Keploy Java SDK</name>
-    <description>Client Java SDK for Kepploy</description>
+    <description>Client Java SDK for Keploy</description>
     <url>https://github.com/keploy/java-sdk</url>
     <licenses>
         <license>

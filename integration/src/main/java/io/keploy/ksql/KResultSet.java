@@ -27,34 +27,6 @@ public class KResultSet implements ResultSet,Cloneable {
 
  @Override
  public boolean next() throws SQLException {
-//  Kcontext kctx = Context.getCtx();
-//  System.out.println("INSIDE next !@@!!!");
-//  if (kctx == null) {
-//   return false;
-//  }
-//  mode.ModeType mode = kctx.getMode();
-//  boolean rs = false;
-//  switch (mode) {
-//   case MODE_TEST:
-//    // don't run
-//    break;
-//   case MODE_RECORD:
-//    rs = wrappedResultSet.next();
-//    break;
-//   default:
-//    System.out.println("integrations: Not in a valid sdk mode");
-//  }
-//  Map<String, String> meta = ProcessD.getMeta(rs);
-//  depsobj rs2;
-//  try {
-//   rs2 = ProcessD.ProcessDep(meta, rs);
-//  } catch (InvalidProtocolBufferException e) {
-//   throw new RuntimeException(e);
-//  }
-//  if (rs2.isMock() && rs2.getRes() != null) {
-//   rs = (boolean) rs2.getRes().get(0);
-//   System.out.println("HOGYAAaaaaaaaaaa .........");
-//  }
   return wrappedResultSet.next();
  }
 
@@ -70,29 +42,7 @@ public class KResultSet implements ResultSet,Cloneable {
 
  @Override
  public String getString(int columnIndex) throws SQLException {
-  System.out.println("Mocked Result Set Get String Method !! ");
-  String result = wrappedResultSet.getString(columnIndex);
-  try {
-   FileOutputStream fileOut = new FileOutputStream("ValueObject.ser");
-   ObjectOutputStream out = new ObjectOutputStream(fileOut);
-   out.writeObject(result);
-   out.close();
-   fileOut.close();
-  } catch (Exception e) {
-   System.out.println("Nhi kar paya !!" + e);
-  }
-
-  try {
-   FileInputStream fileIn = new FileInputStream("ValueObject2.ser");
-   ObjectInputStream in = null;
-   in = new ObjectInputStream(fileIn);
-   String vo2 = (String) in.readObject();
-   System.out.println("Mein serialize hoke deserialize hogya !! "+ vo2);
-  } catch (Exception e) {
-   throw new RuntimeException(e);
-  }
-
-  return result;
+  return wrappedResultSet.getString(columnIndex);
  }
 
  @Override
@@ -102,7 +52,6 @@ public class KResultSet implements ResultSet,Cloneable {
 
  @Override
  public byte getByte(int columnIndex) throws SQLException {
-  System.out.println("MOcked get bytte");
   byte gb = wrappedResultSet.getByte(columnIndex);
   return gb;
  }
@@ -115,7 +64,6 @@ public class KResultSet implements ResultSet,Cloneable {
 
  @Override
  public int getInt(int columnIndex) throws SQLException {
-  System.out.println("MOcked get byte");
   int gi = wrappedResultSet.getInt(columnIndex);
   return gi;
  }
@@ -1041,15 +989,4 @@ public class KResultSet implements ResultSet,Cloneable {
   return wrappedResultSet.isWrapperFor(iface);
  }
 
- @Override
- public KResultSet clone() {
-  System.out.println("I AM CLONED !!");
-  try {
-   KResultSet clone = (KResultSet) super.clone();
-   // TODO: copy mutable state here, so the clone can't change the internals of the original
-   return clone;
-  } catch (CloneNotSupportedException e) {
-   throw new AssertionError();
-  }
- }
 }

@@ -3,10 +3,12 @@ package io.keploy.agent;
 import io.keploy.regression.mode;
 import net.bytebuddy.implementation.bind.annotation.Origin;
 import net.bytebuddy.implementation.bind.annotation.SuperCall;
+import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
 
+@Component
 public class RegisterDriverAdvice_Interceptor {
 
     public static String execute(@SuperCall Callable<String> client, @Origin Method method) throws Exception {
