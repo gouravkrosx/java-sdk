@@ -16,6 +16,7 @@ import java.sql.*;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class KPreparedStatement implements PreparedStatement {
  PreparedStatement wrappedPreparedStatement;
@@ -37,7 +38,6 @@ public class KPreparedStatement implements PreparedStatement {
   }
   mode.ModeType mode = kctx.getMode();
 
-  System.out.println("INSIDE EXECUTE QUERY !@@!!! ");
   ResultSet rs = new KResultSet();
   switch (mode) {
    case MODE_TEST:
@@ -529,7 +529,23 @@ public class KPreparedStatement implements PreparedStatement {
 
  @Override
  public void close() throws SQLException {
-  wrappedPreparedStatement.close();
+  Kcontext kctx = Context.getCtx();
+  if (kctx == null) {
+   return;
+  }
+  mode.ModeType mode = kctx.getMode();
+
+  switch (mode) {
+   case MODE_TEST:
+    // don't run
+    break;
+   case MODE_RECORD:
+    wrappedPreparedStatement.close();
+    break;
+   default:
+    System.out.println("integrations: Not in a valid sdk mode");
+  }
+
  }
 
  @Override
@@ -732,6 +748,9 @@ public class KPreparedStatement implements PreparedStatement {
 
  @Override
  public boolean isCloseOnCompletion() throws SQLException {
+  if (Objects.equals(System.getenv("KEPLOY_MODE"), "test")){
+   return true;
+  }
   return wrappedPreparedStatement.isCloseOnCompletion();
  }
 

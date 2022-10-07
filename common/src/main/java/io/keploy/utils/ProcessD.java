@@ -48,7 +48,6 @@ public class ProcessD {
                     return new depsobj<>(false, null);
                 }
                 List<Object> res = new ArrayList<>();
-                System.out.println(outputs.length + " length of output" + Arrays.toString(outputs));
 
                 for (T output : outputs) {
                     List<Service.DataBytes> bin = deps.get(0).getDataList();

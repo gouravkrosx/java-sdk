@@ -22,7 +22,6 @@ public class KConnection implements Connection {
 
     public KConnection(Connection pgConnection) {
         this.wrappedCon = pgConnection;
-        System.out.println("hooks connection !!");
     }
 
     public KConnection() {
@@ -40,7 +39,6 @@ public class KConnection implements Connection {
 
     @Override
     public PreparedStatement prepareStatement(String sql) throws SQLException {
-        System.out.println("INSIDE PREPARED STATEMENT of connection !! " + sql);
         Kcontext kctx = Context.getCtx();
         if (kctx == null) {
             PreparedStatement resultSet = Mockito.mock(PreparedStatement.class);
@@ -48,7 +46,7 @@ public class KConnection implements Connection {
         }
         mode.ModeType mode = kctx.getMode();
 
-        System.out.println("INSIDE prepareStatement !@@!!! ");
+
         PreparedStatement rs = new KPreparedStatement();
         switch (mode) {
             case MODE_TEST:
@@ -208,28 +206,43 @@ public class KConnection implements Connection {
 
     @Override
     public void close() throws SQLException {
-       wrappedCon.close();
-
-    }
-
-    @Override
-    public boolean isClosed() throws SQLException {
 //        Kcontext kctx = Context.getCtx();
 //        if (kctx == null) {
-//            return false;
+//            return;
 //        }
 //        mode.ModeType mode = kctx.getMode();
-        boolean rs = true;
+//
 //        switch (mode) {
 //            case MODE_TEST:
 //                // don't run
 //                break;
 //            case MODE_RECORD:
-                rs = wrappedCon.isClosed();
+        wrappedCon.close();
 //                break;
 //            default:
 //                System.out.println("integrations: Not in a valid sdk mode");
 //        }
+
+    }
+
+    @Override
+    public boolean isClosed() throws SQLException {
+        Kcontext kctx = Context.getCtx();
+        if (kctx == null) {
+            return true;
+        }
+        mode.ModeType mode = kctx.getMode();
+        boolean rs = true;
+        switch (mode) {
+            case MODE_TEST:
+                // don't run
+                break;
+            case MODE_RECORD:
+                rs = wrappedCon.isClosed();
+                break;
+            default:
+                System.out.println("integrations: Not in a valid sdk mode");
+        }
 //        depsobj rs2;
 //        try {
 //            Map<String, String> meta = ProcessD.getMeta(rs);
@@ -263,16 +276,16 @@ public class KConnection implements Connection {
             default:
                 System.out.println("integrations: Not in a valid sdk mode");
         }
-        depsobj rs2;
-        try {
-            Map<String, String> meta = ProcessD.getMeta(rs);
-            rs2 = ProcessD.ProcessDep(meta, rs);
-        } catch (InvalidProtocolBufferException e) {
-            throw new RuntimeException(e);
-        }
-        if (rs2.isMock() && rs2.getRes() != null) {
-            rs = (DatabaseMetaData) rs2.getRes().get(0);
-        }
+//        depsobj rs2;
+//        try {
+//            Map<String, String> meta = ProcessD.getMeta(rs);
+//            rs2 = ProcessD.ProcessDep(meta, rs);
+//        } catch (InvalidProtocolBufferException e) {
+//            throw new RuntimeException(e);
+//        }
+//        if (rs2.isMock() && rs2.getRes() != null) {
+//            rs = (DatabaseMetaData) rs2.getRes().get(0);
+//        }
         return rs;
 
     }
@@ -515,7 +528,6 @@ public class KConnection implements Connection {
         }
         if (rs2.isMock() && rs2.getRes() != null) {
             rs = (PreparedStatement) rs2.getRes().get(0);
-            System.out.println("HOGYAAaaaaaaaaaa .........");
         }
         return rs;
     }
@@ -731,7 +743,6 @@ public class KConnection implements Connection {
         Kcontext kctx = Context.getCtx();
         mode.ModeType mode = kctx.getMode();
 
-        System.out.println("INSIDE prepareStatement !@@!!! ");
         PreparedStatement rs = new KPreparedStatement();
         switch (mode) {
             case MODE_TEST:
@@ -797,7 +808,6 @@ public class KConnection implements Connection {
         Kcontext kctx = Context.getCtx();
         mode.ModeType mode = kctx.getMode();
 
-        System.out.println("INSIDE prepareStatement !@@!!! ");
         PreparedStatement rs = new KPreparedStatement();
         switch (mode) {
             case MODE_TEST:
@@ -819,18 +829,15 @@ public class KConnection implements Connection {
         }
         if (rs2.isMock() && rs2.getRes() != null) {
             rs = (PreparedStatement) rs2.getRes().get(0);
-            System.out.println("HOGYAAaaaaaaaaaa .........");
         }
         return new KPreparedStatement(rs);
     }
 
     @Override
     public PreparedStatement prepareStatement(String sql, int[] columnIndexes) throws SQLException {
-        System.out.println("INSIDE PREPARED STATEMENT of connection !! " + sql + Arrays.toString(columnIndexes));
         Kcontext kctx = Context.getCtx();
         mode.ModeType mode = kctx.getMode();
 
-        System.out.println("INSIDE prepareStatement !@@!!! ");
         PreparedStatement rs = new KPreparedStatement();
         switch (mode) {
             case MODE_TEST:
@@ -852,18 +859,17 @@ public class KConnection implements Connection {
         }
         if (rs2.isMock() && rs2.getRes() != null) {
             rs = (PreparedStatement) rs2.getRes();
-            System.out.println("HOGYAAaaaaaaaaaa .........");
+
         }
         return rs;
     }
 
     @Override
     public PreparedStatement prepareStatement(String sql, String[] columnNames) throws SQLException {
-        System.out.println("INSIDE PREPARED STATEMENT of connection !! " + sql);
+//        System.out.println("INSIDE PREPARED STATEMENT of connection !! " + sql);
         Kcontext kctx = Context.getCtx();
         mode.ModeType mode = kctx.getMode();
 
-        System.out.println("INSIDE prepareStatement !@@!!! ");
         PreparedStatement rs = new KPreparedStatement();
         switch (mode) {
             case MODE_TEST:
