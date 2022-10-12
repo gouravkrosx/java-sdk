@@ -33,7 +33,7 @@ public class App {
             System.out.println(qq);
 
 
-            pp.setInt(1, 21);
+//            pp.setInt(1, 21);
             ResultSet rs = qq.executeQuery();
             while (rs.next())
                 if (rs.getString(2) == "gourav"){

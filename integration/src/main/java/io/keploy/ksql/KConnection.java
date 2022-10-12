@@ -263,6 +263,9 @@ public class KConnection implements Connection {
     public DatabaseMetaData getMetaData() throws SQLException {
         Kcontext kctx = Context.getCtx();
         if (kctx == null) {
+//            if (Objects.equals(System.getenv("KEPLOY_MODE"), "record")){
+//                return wrappedCon.getMetaData();
+//            }
             return Mockito.mock(DatabaseMetaData.class);
         }
         mode.ModeType mode = kctx.getMode();
@@ -444,6 +447,7 @@ public class KConnection implements Connection {
                 break;
             case MODE_RECORD:
                 rs = wrappedCon.getWarnings();
+                break;
             default:
                 System.out.println("integrations: Not in a valid sdk mode");
         }
