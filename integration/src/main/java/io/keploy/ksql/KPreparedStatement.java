@@ -50,8 +50,9 @@ public class KPreparedStatement implements PreparedStatement {
     System.out.println("integrations: Not in a valid sdk mode");
   }
 
-  Map<String, String> meta = new HashMap<>();
+  Map<String, String> meta;
   meta = ProcessD.getMeta(rs);
+  meta.put("operation","executeQuery()");
   depsobj rs2;
   try {
    rs2 = ProcessD.ProcessDep(meta, rs);

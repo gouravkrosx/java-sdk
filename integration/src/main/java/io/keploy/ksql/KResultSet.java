@@ -1,33 +1,95 @@
 package io.keploy.ksql;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import io.keploy.regression.context.Context;
-import io.keploy.regression.context.Kcontext;
-import io.keploy.regression.mode;
-import io.keploy.utils.ProcessD;
-import io.keploy.utils.depsobj;
+import io.keploy.grpc.stubs.Service;
+import io.keploy.utils.ProcessSQL;
 
-import java.io.*;
+import java.io.InputStream;
+import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.sql.Date;
 import java.sql.*;
-import java.util.Calendar;
-import java.util.Map;
+import java.util.*;
 
-public class KResultSet implements ResultSet,Cloneable {
+public class KResultSet implements ResultSet {
  ResultSet wrappedResultSet;
 
+// message SqlCol  {
+//  string Name = 1;
+//  string Type = 2;
+//  //optional fields
+//  int64 Precision = 3;
+//  int64 Scale = 4;
+// }
+
+
+ private List<Service.SqlCol> sqlColList;
+
+ private List<String> rowsList;
+
+ private StringBuilder sb;
+
+ private Set<Service.SqlCol> colExists;
+
+ boolean columnsAdded = false;
+
+
  public KResultSet(ResultSet rs) {
+  System.out.println("Inside ResultSet !! ");
+  sqlColList = new ArrayList<>();
+  colExists = new HashSet<>();
+  rowsList = new ArrayList<>();
+  sb = new StringBuilder();
   wrappedResultSet = rs;
  }
 
- public KResultSet(){
+ public KResultSet(){}
 
+
+ private void addSqlColToList(String colName, String colType) {
+  final Service.SqlCol sqlCol = Service.SqlCol.newBuilder().setName(colName).setType(colType).build();
+  final boolean exist = colExists.contains(sqlCol);
+
+  if (!exist) {
+   sqlColList.add(sqlCol);
+   colExists.add(sqlCol);
+  }
+ }
+
+ private void addRows() {
+  if (sb.length() != 0) {
+   sb.deleteCharAt(sb.length() - 1);
+   sb.insert(0, "[");
+   sb.append("]");
+   rowsList.add(sb.toString());
+
+  }
+  sb = new StringBuilder();
  }
 
  @Override
  public boolean next() throws SQLException {
-  return wrappedResultSet.next();
+
+  boolean hasNext = wrappedResultSet.next();
+  addRows();
+
+  if (!hasNext) {
+   Service.Table.Builder tableBuilder = Service.Table.newBuilder();
+   tableBuilder.addAllCols(sqlColList);
+   tableBuilder.addAllRows(rowsList);
+   Service.Table table = tableBuilder.build();
+   System.out.println("TABLE -- " + table);
+   try {
+    HashMap<String, String> meta = new HashMap<>();
+    meta.put("method", "next()");
+    ProcessSQL.ProcessDep(meta, table);
+   } catch (InvalidProtocolBufferException e) {
+    throw new RuntimeException(e);
+   }
+  }
+
+  return hasNext;
  }
 
  @Override
@@ -42,7 +104,8 @@ public class KResultSet implements ResultSet,Cloneable {
 
  @Override
  public String getString(int columnIndex) throws SQLException {
-  return wrappedResultSet.getString(columnIndex);
+  String x = wrappedResultSet.getString(columnIndex);
+  return x;
  }
 
  @Override
@@ -70,7 +133,9 @@ public class KResultSet implements ResultSet,Cloneable {
 
  @Override
  public long getLong(int columnIndex) throws SQLException {
-  return wrappedResultSet.getLong(columnIndex);
+  long gl = wrappedResultSet.getLong(columnIndex);
+//        row.add(gl);
+  return gl;
  }
 
  @Override
@@ -127,68 +192,108 @@ public class KResultSet implements ResultSet,Cloneable {
 
  @Override
  public String getString(String columnLabel) throws SQLException {
-  return wrappedResultSet.getString(columnLabel);
+  String gs = wrappedResultSet.getString(columnLabel);
+  sb.append(gs).append(",");
+  addSqlColToList(columnLabel, gs.getClass().getSimpleName());
+  return gs;
  }
 
  @Override
  public boolean getBoolean(String columnLabel) throws SQLException {
-  return wrappedResultSet.getBoolean(columnLabel);
+  Boolean gb = wrappedResultSet.getBoolean(columnLabel);
+  sb.append(gb).append(",");
+  addSqlColToList(columnLabel, gb.getClass().getSimpleName());
+  return gb;
+
  }
 
  @Override
  public byte getByte(String columnLabel) throws SQLException {
-  return wrappedResultSet.getByte(columnLabel);
+  Byte gb = wrappedResultSet.getByte(columnLabel);
+  sb.append(gb).append(",");
+  addSqlColToList(columnLabel, gb.getClass().getSimpleName());
+  return gb;
  }
 
  @Override
  public short getShort(String columnLabel) throws SQLException {
-  return wrappedResultSet.getShort(columnLabel);
+  Short gs = wrappedResultSet.getShort(columnLabel);
+  sb.append(gs).append(",");
+  addSqlColToList(columnLabel, gs.getClass().getSimpleName());
+  return gs;
  }
 
  @Override
  public int getInt(String columnLabel) throws SQLException {
-  return wrappedResultSet.getInt(columnLabel);
+  Integer gi = wrappedResultSet.getInt(columnLabel);
+  sb.append(gi).append(",");
+  addSqlColToList(columnLabel, gi.getClass().getSimpleName());
+  return gi;
  }
 
  @Override
  public long getLong(String columnLabel) throws SQLException {
-  return wrappedResultSet.getLong(columnLabel);
+  Long gl = wrappedResultSet.getLong(columnLabel);
+  sb.append(gl).append(",");
+  addSqlColToList(columnLabel, gl.getClass().getSimpleName());
+  return gl;
  }
 
  @Override
  public float getFloat(String columnLabel) throws SQLException {
-  return wrappedResultSet.getFloat(columnLabel);
+  Float gf = wrappedResultSet.getFloat(columnLabel);
+  sb.append(gf).append(",");
+  addSqlColToList(columnLabel, gf.getClass().getSimpleName());
+  return gf;
  }
 
  @Override
  public double getDouble(String columnLabel) throws SQLException {
-  return wrappedResultSet.getDouble(columnLabel);
+  Double gd = wrappedResultSet.getDouble(columnLabel);
+  sb.append(gd).append(",");
+  addSqlColToList(columnLabel, gd.getClass().getSimpleName());
+  return gd;
  }
 
  @Override
  @Deprecated
  public BigDecimal getBigDecimal(String columnLabel, int scale) throws SQLException {
-  return wrappedResultSet.getBigDecimal(columnLabel, scale);
+  BigDecimal gbd = wrappedResultSet.getBigDecimal(columnLabel, scale);
+  sb.append(gbd).append(",");
+  addSqlColToList(columnLabel, gbd.getClass().getSimpleName());
+  return gbd;
  }
 
  @Override
  public byte[] getBytes(String columnLabel) throws SQLException {
-  return wrappedResultSet.getBytes(columnLabel);
+  byte[] gb = wrappedResultSet.getBytes(columnLabel);
+  sb.append(Arrays.toString(gb)).append(",");
+  addSqlColToList(columnLabel, gb.getClass().getSimpleName());
+  return gb;
  }
 
  @Override
  public Date getDate(String columnLabel) throws SQLException {
-  return wrappedResultSet.getDate(columnLabel);
+  Date gd = wrappedResultSet.getDate(columnLabel);
+  sb.append(gd).append(",");
+  addSqlColToList(columnLabel, gd.getClass().getSimpleName());
+  return gd;
  }
 
  @Override
  public Time getTime(String columnLabel) throws SQLException {
-  return wrappedResultSet.getTime(columnLabel);
+  Time gt = wrappedResultSet.getTime(columnLabel);
+  sb.append(gt).append(",");
+  addSqlColToList(columnLabel, gt.getClass().getSimpleName());
+  return gt;
  }
 
  @Override
  public Timestamp getTimestamp(String columnLabel) throws SQLException {
-  return wrappedResultSet.getTimestamp(columnLabel);
+  Timestamp gts = wrappedResultSet.getTimestamp(columnLabel);
+  sb.append(gts).append(",");
+  addSqlColToList(columnLabel, gts.getClass().getSimpleName());
+  return gts;
  }
 
  @Override
@@ -224,6 +329,7 @@ public class KResultSet implements ResultSet,Cloneable {
 
  @Override
  public ResultSetMetaData getMetaData() throws SQLException {
+  System.out.println(">>>>>>>>>>>>>>>>>>>>>> call >>>>>>>>>>>>>>>");
   ResultSetMetaData getMetaData = wrappedResultSet.getMetaData();
   ResultSetMetaData kgetMetaData = new KResultSetMetaData(getMetaData);
   return kgetMetaData;

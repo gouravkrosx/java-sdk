@@ -86,20 +86,17 @@ public class ProcessD {
                 }
                 kctx.getDeps().remove(0);
 
-//                if (kctx.getFileExport()) {
-//                    logger.info("Returned the mocked outputs for Generic dependency call with meta: {}", meta);
-//                }
 //                kctx.getMock().remove(0);
                 return new depsobj<>(true, res);
 
             case MODE_RECORD:
                 Service.Dependency.Builder Dependencies = Service.Dependency.newBuilder();
                 List<Service.DataBytes> dblist = new ArrayList<>(); //this is 2d array
-                Map<String, String> metas = new HashMap<>();
+//                Map<String, String> meta = new HashMap<>();
                 for (T output : outputs) {
 //                    binResult = encoded(output);
                     String objectClass = output.getClass().getName();
-                    System.out.println(objectClass);
+                    System.out.println("<< <-> >>"+meta);
                     switch (objectClass) {
                         case "org.postgresql.jdbc.PgPreparedStatement":
                         case "io.keploy.ksql.KPreparedStatement":
@@ -122,7 +119,7 @@ public class ProcessD {
                         default:
 
                     }
-                    metas = getMeta(output);
+                    meta = getMeta(output);
                     if (binResult == null) {
                         logger.error("dependency capture failed: failed to encode object test id : {}", kctx.getTestId());
                         return new depsobj<>(false, null);
@@ -130,7 +127,8 @@ public class ProcessD {
                     Service.DataBytes dbytes = Service.DataBytes.newBuilder().setBin(ByteString.copyFrom(binResult)).build();
                     dblist.add(dbytes);
                 }
-                Service.Dependency genericDeps = Dependencies.addAllData(dblist).setName(metas.get("name")).setType(metas.get("type")).putAllMeta(metas).build();
+                System.out.println("HI Meta here - "+meta);
+                Service.Dependency genericDeps = Dependencies.addAllData(dblist).setName(meta.get("name")).setType(meta.get("type")).putAllMeta(meta).build();
 
                 kctx.getDeps().add(genericDeps);
 
@@ -191,7 +189,7 @@ public class ProcessD {
         Map<String, String> meta = new HashMap<>();
         meta.put("name", "SQL");
         meta.put("type", "SQL_DB");
-        meta.put("operation", obj.getClass().getName());
+        meta.put("object", obj.getClass().getName());
         return meta;
     }
 
