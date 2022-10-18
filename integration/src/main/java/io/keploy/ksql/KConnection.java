@@ -20,12 +20,13 @@ import java.util.concurrent.Executor;
 public class KConnection implements Connection {
 
     private Connection wrappedCon = null;
+    Connection testconn = null;
 
     public KConnection(Connection pgConnection) {
         this.wrappedCon = pgConnection;
     }
 
-    public KConnection() {
+    public KConnection() throws SQLException {
 
     }
 
@@ -52,9 +53,11 @@ public class KConnection implements Connection {
         switch (mode) {
             case MODE_TEST:
                 // don't run
+//                rs = new KPreparedStatement(wrappedCon.prepareStatement(sql));
+//                rs = new KPreparedStatement(testconn.prepareStatement(sql));
                 break;
             case MODE_RECORD:
-                rs = new KPreparedStatement(wrappedCon.prepareStatement(sql));
+                rs = wrappedCon.prepareStatement(sql);
                 break;
             default:
                 System.out.println("integrations: Not in a valid sdk mode");
@@ -70,7 +73,7 @@ public class KConnection implements Connection {
         if (rs2.isMock() && rs2.getRes() != null) {
             rs = (PreparedStatement) rs2.getRes().get(0);
         }
-        return rs;
+        return new KPreparedStatement(rs);
     }
 
     @Override
@@ -93,16 +96,16 @@ public class KConnection implements Connection {
             default:
                 System.out.println("integrations: Not in a valid sdk mode");
         }
-        depsobj rs2;
-        try {
-            Map<String, String> meta = ProcessD.getMeta(rs);
-            rs2 = ProcessD.ProcessDep(meta, rs);
-        } catch (InvalidProtocolBufferException e) {
-            throw new RuntimeException(e);
-        }
-        if (rs2.isMock() && rs2.getRes() != null) {
-            rs = (CallableStatement) rs2.getRes().get(0);
-        }
+//        depsobj rs2;
+//        try {
+//            Map<String, String> meta = ProcessD.getMeta(rs);
+//            rs2 = ProcessD.ProcessDep(meta, rs);
+//        } catch (InvalidProtocolBufferException e) {
+//            throw new RuntimeException(e);
+//        }
+//        if (rs2.isMock() && rs2.getRes() != null) {
+//            rs = (CallableStatement) rs2.getRes().get(0);
+//        }
         return new KCallableStatement(rs);
     }
 
@@ -150,16 +153,16 @@ public class KConnection implements Connection {
             default:
                 System.out.println("integrations: Not in a valid sdk mode");
         }
-        depsobj rs2;
-        try {
-            Map<String, String> meta = ProcessD.getMeta(rs);
-            rs2 = ProcessD.ProcessDep(meta, rs);
-        } catch (InvalidProtocolBufferException e) {
-            throw new RuntimeException(e);
-        }
-        if (rs2.isMock() && rs2.getRes() != null) {
-            rs = (boolean) rs2.getRes().get(0);
-        }
+//        depsobj rs2;
+//        try {
+//            Map<String, String> meta = ProcessD.getMeta(rs);
+//            rs2 = ProcessD.ProcessDep(meta, rs);
+//        } catch (InvalidProtocolBufferException e) {
+//            throw new RuntimeException(e);
+//        }
+//        if (rs2.isMock() && rs2.getRes() != null) {
+//            rs = (boolean) rs2.getRes().get(0);
+//        }
         return rs;
 
     }
@@ -335,16 +338,16 @@ public class KConnection implements Connection {
             default:
                 System.out.println("integrations: Not in a valid sdk mode");
         }
-        depsobj rs2;
-        try {
-            Map<String, String> meta = ProcessD.getMeta(rs);
-            rs2 = ProcessD.ProcessDep(meta, rs);
-        } catch (InvalidProtocolBufferException e) {
-            throw new RuntimeException(e);
-        }
-        if (rs2.isMock() && rs2.getRes() != null) {
-            rs = (boolean) rs2.getRes().get(0);
-        }
+//        depsobj rs2;
+//        try {
+//            Map<String, String> meta = ProcessD.getMeta(rs);
+//            rs2 = ProcessD.ProcessDep(meta, rs);
+//        } catch (InvalidProtocolBufferException e) {
+//            throw new RuntimeException(e);
+//        }
+//        if (rs2.isMock() && rs2.getRes() != null) {
+//            rs = (boolean) rs2.getRes().get(0);
+//        }
         return rs;
 
     }
@@ -419,16 +422,16 @@ public class KConnection implements Connection {
             default:
                 System.out.println("integrations: Not in a valid sdk mode");
         }
-        depsobj rs2;
-        try {
-            Map<String, String> meta = ProcessD.getMeta(rs);
-            rs2 = ProcessD.ProcessDep(meta, rs);
-        } catch (InvalidProtocolBufferException e) {
-            throw new RuntimeException(e);
-        }
-        if (rs2.isMock() && rs2.getRes() != null) {
-            rs = (int) rs2.getRes().get(0);
-        }
+//        depsobj rs2;
+//        try {
+//            Map<String, String> meta = ProcessD.getMeta(rs);
+//            rs2 = ProcessD.ProcessDep(meta, rs);
+//        } catch (InvalidProtocolBufferException e) {
+//            throw new RuntimeException(e);
+//        }
+//        if (rs2.isMock() && rs2.getRes() != null) {
+//            rs = (int) rs2.getRes().get(0);
+//        }
         return rs;
 
     }
@@ -495,16 +498,16 @@ public class KConnection implements Connection {
             default:
                 System.out.println("integrations: Not in a valid sdk mode");
         }
-        depsobj rs2;
-        try {
-            Map<String, String> meta = ProcessD.getMeta(rs);
-            rs2 = ProcessD.ProcessDep(meta, rs);
-        } catch (InvalidProtocolBufferException e) {
-            throw new RuntimeException(e);
-        }
-        if (rs2.isMock() && rs2.getRes() != null) {
-            rs = (Statement) rs2.getRes().get(0);
-        }
+//        depsobj rs2;
+//        try {
+//            Map<String, String> meta = ProcessD.getMeta(rs);
+//            rs2 = ProcessD.ProcessDep(meta, rs);
+//        } catch (InvalidProtocolBufferException e) {
+//            throw new RuntimeException(e);
+//        }
+//        if (rs2.isMock() && rs2.getRes() != null) {
+//            rs = (Statement) rs2.getRes().get(0);
+//        }
         return rs;
     }
 
@@ -517,24 +520,25 @@ public class KConnection implements Connection {
         switch (mode) {
             case MODE_TEST:
                 // don't run
+//                rs = testconn.prepareStatement(sql, resultSetType, resultSetConcurrency);
                 break;
             case MODE_RECORD:
-                rs = new KPreparedStatement(wrappedCon.prepareStatement(sql, resultSetType, resultSetConcurrency));
+                rs = wrappedCon.prepareStatement(sql, resultSetType, resultSetConcurrency);
                 break;
             default:
                 System.out.println("integrations: Not in a valid sdk mode");
         }
-
-        Map<String, String> meta = ProcessD.getMeta(rs);
-        depsobj rs2;
-        try {
-            rs2 = ProcessD.ProcessDep(meta, rs);
-        } catch (InvalidProtocolBufferException e) {
-            throw new RuntimeException(e);
-        }
-        if (rs2.isMock() && rs2.getRes() != null) {
-            rs = (PreparedStatement) rs2.getRes().get(0);
-        }
+        System.out.println("ResultSetType "+" ResultSetConcurrency");
+//        Map<String, String> meta = ProcessD.getMeta(rs);
+//        depsobj rs2;
+//        try {
+//            rs2 = ProcessD.ProcessDep(meta, rs);
+//        } catch (InvalidProtocolBufferException e) {
+//            throw new RuntimeException(e);
+//        }
+//        if (rs2.isMock() && rs2.getRes() != null) {
+//            rs = (PreparedStatement) rs2.getRes().get(0);
+//        }
         return rs;
     }
 
@@ -558,16 +562,16 @@ public class KConnection implements Connection {
             default:
                 System.out.println("integrations: Not in a valid sdk mode");
         }
-        depsobj rs2;
-        try {
-            Map<String, String> meta = ProcessD.getMeta(rs);
-            rs2 = ProcessD.ProcessDep(meta, rs);
-        } catch (InvalidProtocolBufferException e) {
-            throw new RuntimeException(e);
-        }
-        if (rs2.isMock() && rs2.getRes() != null) {
-            rs = (CallableStatement) rs2.getRes().get(0);
-        }
+//        depsobj rs2;
+//        try {
+//            Map<String, String> meta = ProcessD.getMeta(rs);
+//            rs2 = ProcessD.ProcessDep(meta, rs);
+//        } catch (InvalidProtocolBufferException e) {
+//            throw new RuntimeException(e);
+//        }
+//        if (rs2.isMock() && rs2.getRes() != null) {
+//            rs = (CallableStatement) rs2.getRes().get(0);
+//        }
         return new KCallableStatement(rs);
     }
 
@@ -657,17 +661,17 @@ public class KConnection implements Connection {
             default:
                 System.out.println("integrations: Not in a valid sdk mode");
         }
-        depsobj rs2;
+//        depsobj rs2;
 
-        try {
-            Map<String, String> meta = ProcessD.getMeta(rs);
-            rs2 = ProcessD.ProcessDep(meta, rs);
-        } catch (InvalidProtocolBufferException e) {
-            throw new RuntimeException(e);
-        }
-        if (rs2.isMock() && rs2.getRes() != null) {
-            rs = (int) rs2.getRes().get(0);
-        }
+//        try {
+//            Map<String, String> meta = ProcessD.getMeta(rs);
+//            rs2 = ProcessD.ProcessDep(meta, rs);
+//        } catch (InvalidProtocolBufferException e) {
+//            throw new RuntimeException(e);
+//        }
+//        if (rs2.isMock() && rs2.getRes() != null) {
+//            rs = (int) rs2.getRes().get(0);
+//        }
         return rs;
 
     }
@@ -729,16 +733,16 @@ public class KConnection implements Connection {
             default:
                 System.out.println("integrations: Not in a valid sdk mode");
         }
-        depsobj rs2;
-        try {
-            Map<String, String> meta = ProcessD.getMeta(rs);
-            rs2 = ProcessD.ProcessDep(meta, rs);
-        } catch (InvalidProtocolBufferException e) {
-            throw new RuntimeException(e);
-        }
-        if (rs2.isMock() && rs2.getRes() != null) {
-            rs = (Statement) rs2.getRes().get(0);
-        }
+//        depsobj rs2;
+//        try {
+//            Map<String, String> meta = ProcessD.getMeta(rs);
+//            rs2 = ProcessD.ProcessDep(meta, rs);
+//        } catch (InvalidProtocolBufferException e) {
+//            throw new RuntimeException(e);
+//        }
+//        if (rs2.isMock() && rs2.getRes() != null) {
+//            rs = (Statement) rs2.getRes().get(0);
+//        }
 
         return new KStatement(rs);
     }
@@ -761,17 +765,17 @@ public class KConnection implements Connection {
                 System.out.println("integrations: Not in a valid sdk mode");
         }
 
-        Map<String, String> meta = ProcessD.getMeta(rs);
+//        Map<String, String> meta = ProcessD.getMeta(rs);
 
-        depsobj rs2;
-        try {
-            rs2 = ProcessD.ProcessDep(meta, rs);
-        } catch (InvalidProtocolBufferException e) {
-            throw new RuntimeException(e);
-        }
-        if (rs2.isMock() && rs2.getRes() != null) {
-            rs = (PreparedStatement) rs2.getRes().get(0);
-        }
+//        depsobj rs2;
+//        try {
+//            rs2 = ProcessD.ProcessDep(meta, rs);
+//        } catch (InvalidProtocolBufferException e) {
+//            throw new RuntimeException(e);
+//        }
+//        if (rs2.isMock() && rs2.getRes() != null) {
+//            rs = (PreparedStatement) rs2.getRes().get(0);
+//        }
         return rs;
     }
 
@@ -795,22 +799,22 @@ public class KConnection implements Connection {
             default:
                 System.out.println("integrations: Not in a valid sdk mode");
         }
-        depsobj rs2;
-        try {
-            Map<String, String> meta = ProcessD.getMeta(rs);
-            rs2 = ProcessD.ProcessDep(meta, rs);
-        } catch (InvalidProtocolBufferException e) {
-            throw new RuntimeException(e);
-        }
-        if (rs2.isMock() && rs2.getRes() != null) {
-            rs = (CallableStatement) rs2.getRes().get(0);
-        }
+//        depsobj rs2;
+//        try {
+//            Map<String, String> meta = ProcessD.getMeta(rs);
+//            rs2 = ProcessD.ProcessDep(meta, rs);
+//        } catch (InvalidProtocolBufferException e) {
+//            throw new RuntimeException(e);
+//        }
+//        if (rs2.isMock() && rs2.getRes() != null) {
+//            rs = (CallableStatement) rs2.getRes().get(0);
+//        }
         return new KCallableStatement(rs);
     }
 
     @Override
     public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException {
-        System.out.println("INSIDE PREPARED STATEMENT of connection !! " + sql);
+        System.out.println("INSIDE PREPARED STATEMENT of connection !! " + sql+ " **** " +autoGeneratedKeys);
         Kcontext kctx = Context.getCtx();
         mode.ModeType mode = kctx.getMode();
 
@@ -857,17 +861,18 @@ public class KConnection implements Connection {
                 System.out.println("integrations: Not in a valid sdk mode");
         }
 
-        Map<String, String> meta = ProcessD.getMeta(rs);
-        depsobj rs2;
-        try {
-            rs2 = ProcessD.ProcessDep(meta, rs);
-        } catch (InvalidProtocolBufferException e) {
-            throw new RuntimeException(e);
-        }
-        if (rs2.isMock() && rs2.getRes() != null) {
-            rs = (PreparedStatement) rs2.getRes();
-
-        }
+//        Map<String, String> meta = ProcessD.getMeta(rs);
+//        System.out.println("columnIndex"+columnIndexes);
+//        depsobj rs2;
+//        try {
+//            rs2 = ProcessD.ProcessDep(meta, rs);
+//        } catch (InvalidProtocolBufferException e) {
+//            throw new RuntimeException(e);
+//        }
+//        if (rs2.isMock() && rs2.getRes() != null) {
+//            rs = (PreparedStatement) rs2.getRes();
+//
+//        }
         return rs;
     }
 
@@ -889,19 +894,20 @@ public class KConnection implements Connection {
                 System.out.println("integrations: Not in a valid sdk mode");
         }
 
-        Map<String, String> meta = ProcessD.getMeta(rs);
-        depsobj rs2;
-        try {
-
-            rs2 = ProcessD.ProcessDep(meta, rs);
-        } catch (InvalidProtocolBufferException e) {
-            throw new RuntimeException(e);
-        }
-        if (rs2.isMock() && rs2.getRes() != null) {
-            rs = (PreparedStatement) rs2.getRes();
-
-        }
-        return rs;
+//        Map<String, String> meta = ProcessD.getMeta(rs);
+//        System.out.println("columnNames"+columnNames);
+//        depsobj rs2;
+//        try {
+//
+//            rs2 = ProcessD.ProcessDep(meta, rs);
+//        } catch (InvalidProtocolBufferException e) {
+//            throw new RuntimeException(e);
+//        }
+//        if (rs2.isMock() && rs2.getRes() != null) {
+//            rs = (PreparedStatement) rs2.getRes();
+//
+//        }
+        return new KPreparedStatement(rs);
 
     }
 

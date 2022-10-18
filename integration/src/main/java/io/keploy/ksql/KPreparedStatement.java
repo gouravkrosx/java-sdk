@@ -42,6 +42,7 @@ public class KPreparedStatement implements PreparedStatement {
   switch (mode) {
    case MODE_TEST:
     // don't run
+//    rs = wrappedPreparedStatement.executeQuery();
     break;
    case MODE_RECORD:
     rs = wrappedPreparedStatement.executeQuery();

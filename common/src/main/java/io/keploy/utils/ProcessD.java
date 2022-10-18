@@ -214,6 +214,8 @@ public class ProcessD {
         xstream.alias("PreparedStatement", PreparedStatement.class);
         xstream.addPermission(AnyTypePermission.ANY);
         xstream.ignoreUnknownElements();
+       String temp = xstream.toXML(output);
+        System.out.println(temp);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         OutputStreamWriter writer = new OutputStreamWriter(outputStream);
         xstream.toXML(output, writer);
