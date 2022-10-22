@@ -12,13 +12,16 @@ import lombok.NoArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStreamWriter;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @NoArgsConstructor
 public class ProcessD {
@@ -27,6 +30,7 @@ public class ProcessD {
     //    public static ArrayList<Byte> binResult;
     public static byte[] binResult;
     public static XStream xstream = new XStream();
+    private static AtomicInteger c = new AtomicInteger();
 
     @SafeVarargs
     public static <T> depsobj ProcessDep(Map<String, String> meta, T... outputs) throws InvalidProtocolBufferException {
@@ -216,13 +220,19 @@ public class ProcessD {
         xstream.ignoreUnknownElements();
        String temp = xstream.toXML(output);
         System.out.println(temp);
+        int x = c.incrementAndGet();
+        try (PrintWriter out = new PrintWriter("pp"+x+".txt")) {
+            out.println(temp);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         OutputStreamWriter writer = new OutputStreamWriter(outputStream);
         xstream.toXML(output, writer);
         return outputStream.toByteArray();
     }
 
-    public static Connection decodeConnection(byte[] bin) {
+    public static Connection decodeConnection(byte[] bin){
 
         ByteArrayInputStream input = new ByteArrayInputStream(bin);
         XStream xstream = new XStream();
@@ -235,6 +245,7 @@ public class ProcessD {
         } catch (Exception e) {
             System.out.println("Exception while decoding ..... " + e);
         }
+
         return object;
     }
 
@@ -243,6 +254,14 @@ public class ProcessD {
         xstream.alias("Connection", Connection.class);
         xstream.addPermission(AnyTypePermission.ANY);
         xstream.ignoreUnknownElements();
+        String temp = xstream.toXML(output);
+        System.out.println(temp);
+        int x = c.incrementAndGet();
+        try (PrintWriter out = new PrintWriter("cc"+x+".txt")) {
+            out.println(temp);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         OutputStreamWriter writer = new OutputStreamWriter(outputStream);
         xstream.toXML(output, writer);
@@ -254,6 +273,17 @@ public class ProcessD {
         xstream.alias("ResultSet", ResultSet.class);
         xstream.addPermission(AnyTypePermission.ANY);
         xstream.ignoreUnknownElements();
+        String temp = xstream.toXML(output);
+        System.out.println(temp);
+
+
+        int x = c.incrementAndGet();
+
+        try (PrintWriter out = new PrintWriter("rs"+x+".txt")) {
+            out.println(temp);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         OutputStreamWriter writer = new OutputStreamWriter(outputStream);
         xstream.toXML(output, writer);
@@ -326,5 +356,10 @@ public class ProcessD {
             System.out.println("Exception while decoding ..... " + e);
         }
         return object;
+    }
+    public static String readFile(String path, Charset encoding)
+            throws IOException {
+        byte[] encoded = Files.readAllBytes(Paths.get(path));
+        return new String(encoded, encoding);
     }
 }

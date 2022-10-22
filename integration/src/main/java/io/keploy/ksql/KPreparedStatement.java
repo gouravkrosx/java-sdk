@@ -1,6 +1,7 @@
 package io.keploy.ksql;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.thoughtworks.xstream.security.AnyTypePermission;
 import io.keploy.regression.context.Context;
 import io.keploy.regression.context.Kcontext;
 import io.keploy.regression.mode;
@@ -8,15 +9,20 @@ import io.keploy.utils.ProcessD;
 import io.keploy.utils.depsobj;
 import org.mockito.Mockito;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+
+import static io.keploy.utils.ProcessD.readFile;
+import static io.keploy.utils.ProcessD.xstream;
 
 public class KPreparedStatement implements PreparedStatement {
  PreparedStatement wrappedPreparedStatement;
@@ -42,7 +48,16 @@ public class KPreparedStatement implements PreparedStatement {
   switch (mode) {
    case MODE_TEST:
     // don't run
-//    rs = wrappedPreparedStatement.executeQuery();
+    String xml = null;
+    try {
+     xml = readFile("/Users/sarthak_1/Documents/Keploy/trash/samples-java/rs2.txt", StandardCharsets.UTF_8);
+    } catch (IOException e) {
+     throw new RuntimeException(e);
+    }
+    xstream.addPermission(AnyTypePermission.ANY);
+    ResultSet c = (ResultSet) xstream.fromXML(xml);
+    rs = c;
+    System.out.println("DECODED RESULT SET !!!"+rs);
     break;
    case MODE_RECORD:
     rs = wrappedPreparedStatement.executeQuery();
@@ -54,15 +69,15 @@ public class KPreparedStatement implements PreparedStatement {
   Map<String, String> meta;
   meta = ProcessD.getMeta(rs);
   meta.put("operation","executeQuery()");
-  depsobj rs2;
-  try {
-   rs2 = ProcessD.ProcessDep(meta, rs);
-  } catch (InvalidProtocolBufferException e) {
-   throw new RuntimeException(e);
-  }
-  if (rs2.isMock() && rs2.getRes() != null) {
-   rs = (ResultSet) rs2.getRes().get(0);
-  }
+//  depsobj rs2;
+//  try {
+//   rs2 = ProcessD.ProcessDep(meta, rs);
+//  } catch (InvalidProtocolBufferException e) {
+//   throw new RuntimeException(e);
+//  }
+//  if (rs2.isMock() && rs2.getRes() != null) {
+//   rs = (ResultSet) rs2.getRes().get(0);
+//  }
   return new KResultSet(rs);
  }
 
@@ -660,7 +675,6 @@ public class KPreparedStatement implements PreparedStatement {
 
  @Override
  public void addBatch(String sql) throws SQLException {
-  System.out.println("------ PS ----------");
   wrappedPreparedStatement.addBatch();
  }
 
@@ -671,8 +685,6 @@ public class KPreparedStatement implements PreparedStatement {
 
  @Override
  public int[] executeBatch() throws SQLException {
-  //  return new int[0];
-  System.out.println("Kprep ");
   return wrappedPreparedStatement.executeBatch();
  }
 

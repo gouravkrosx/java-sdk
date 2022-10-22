@@ -63,7 +63,6 @@ public class KResultSet implements ResultSet {
    sb.insert(0, "[");
    sb.append("]");
    rowsList.add(sb.toString());
-
   }
   sb = new StringBuilder();
  }

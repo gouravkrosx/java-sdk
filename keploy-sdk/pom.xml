@@ -122,8 +122,6 @@
             <artifactId>okhttp</artifactId>
             <version>4.10.0</version>
         </dependency>
-
-
     </dependencies>
     <build>
         <resources>
